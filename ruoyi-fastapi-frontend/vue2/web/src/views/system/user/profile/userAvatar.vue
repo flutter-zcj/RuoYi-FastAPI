@@ -1,14 +1,15 @@
+<style lang="scss" scoped>
+.user-info-head { position: relative; display: inline-block; height: 120px; }
+.user-info-head:hover:after { position: absolute; top: 0; left: 0; right: 0; bottom: 0; color: #eee; font-size: 24px; font-style: normal; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; content: '+'; line-height: 110px; background: rgba(0, 0, 0, 0.5); cursor: pointer; border-radius: 50%; }
+</style>
+
 <template>
   <div>
-    <div
-      class="user-info-head"
-      @click="editCropper()"
-    >
+    <div class="user-info-head" @click="editCropper()">
       <img
-        v-bind:src="options.img"
-        title="点击上传头像"
         class="img-circle img-lg"
-      />
+        title="点击上传头像"
+        v-bind:src="options.img"/>
     </div>
     <el-dialog
       :title="title"
@@ -16,14 +17,12 @@
       width="800px"
       append-to-body
       @opened="modalOpened"
-      @close="closeDialog"
-    >
+      @close="closeDialog">
       <el-row>
         <el-col
           :xs="24"
           :md="12"
-          :style="{ height: '350px' }"
-        >
+          :style="{ height: '350px' }">
           <vue-cropper
             ref="cropper"
             :img="options.img"
@@ -33,20 +32,15 @@
             :autoCropHeight="options.autoCropHeight"
             :fixedBox="options.fixedBox"
             :outputType="options.outputType"
-            @realTime="realTime"
             v-if="visible"
-          />
+            @realTime="realTime"/>
         </el-col>
         <el-col
           :xs="24"
           :md="12"
-          :style="{ height: '350px' }"
-        >
+          :style="{ height: '350px' }">
           <div class="avatar-upload-preview">
-            <img
-              :src="previews.url"
-              :style="previews.img"
-            />
+            <img :src="previews.url" :style="previews.img" />
           </div>
         </el-col>
       </el-row>
@@ -55,14 +49,12 @@
         <el-col
           :lg="2"
           :sm="3"
-          :xs="3"
-        >
+          :xs="3">
           <el-upload
             action="#"
             :http-request="requestUpload"
             :show-file-list="false"
-            :before-upload="beforeUpload"
-          >
+            :before-upload="beforeUpload">
             <el-button size="small">
               选择
               <i class="el-icon-upload el-icon--right"></i>
@@ -72,58 +64,47 @@
         <el-col
           :lg="{ span: 1, offset: 2 }"
           :sm="2"
-          :xs="2"
-        >
+          :xs="2">
           <el-button
             icon="el-icon-plus"
             size="small"
-            @click="changeScale(1)"
-          ></el-button>
+            @click="changeScale(1)"></el-button>
         </el-col>
         <el-col
           :lg="{ span: 1, offset: 1 }"
           :sm="2"
-          :xs="2"
-        >
+          :xs="2">
           <el-button
             icon="el-icon-minus"
             size="small"
-            @click="changeScale(-1)"
-          ></el-button>
+            @click="changeScale(-1)"></el-button>
         </el-col>
         <el-col
           :lg="{ span: 1, offset: 1 }"
           :sm="2"
-          :xs="2"
-        >
+          :xs="2">
           <el-button
             icon="el-icon-refresh-left"
             size="small"
-            @click="rotateLeft()"
-          ></el-button>
+            @click="rotateLeft()"></el-button>
         </el-col>
         <el-col
           :lg="{ span: 1, offset: 1 }"
           :sm="2"
-          :xs="2"
-        >
+          :xs="2">
           <el-button
             icon="el-icon-refresh-right"
             size="small"
-            @click="rotateRight()"
-          ></el-button>
+            @click="rotateRight()"></el-button>
         </el-col>
         <el-col
           :lg="{ span: 2, offset: 6 }"
           :sm="2"
-          :xs="2"
-        >
+          :xs="2">
           <el-button
             type="primary"
             size="small"
-            @click="uploadImg()"
-            >提 交</el-button
-          >
+            @click="uploadImg()">提 交</el-button>
         </el-col>
       </el-row>
     </el-dialog>
@@ -131,14 +112,36 @@
 </template>
 
 <script>
+/**
+ * 组件名称：UserAvatar
+ * 功能说明：用户头像上传与裁剪组件，支持缩放、旋转与实时预览
+ * 研发时间：2024/01/22
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import store from '@/store'
 import { VueCropper } from 'vue-cropper'
 import { uploadAvatar } from '@/api/system/user'
 import { debounce } from '@/utils'
 
-export default {
+export default
+{
   components: { VueCropper },
-  data() {
+
+  data()
+  {
     return {
       // 是否显示弹出层
       open: false,
@@ -159,59 +162,115 @@ export default {
       resizeHandler: null,
     }
   },
-  methods: {
+
+  methods:
+  {
     // 编辑头像
-    editCropper() {
+    /**
+     * 打开头像编辑弹窗
+     */
+    editCropper()
+    {
       this.open = true
     },
+
     // 打开弹出层结束时的回调
-    modalOpened() {
+    /**
+     * 弹窗打开完成回调，初始化缩放监听
+     */
+    modalOpened()
+    {
       this.visible = true
-      if (!this.resizeHandler) {
-        this.resizeHandler = debounce(() => {
+      if (!this.resizeHandler)
+      {
+        this.resizeHandler = debounce(() =>
+        {
           this.refresh()
         }, 100)
       }
       window.addEventListener('resize', this.resizeHandler)
     },
+
     // 刷新组件
-    refresh() {
+    /**
+     * 刷新裁剪组件
+     */
+    refresh()
+    {
       this.$refs.cropper.refresh()
     },
+
     // 覆盖默认的上传行为
-    requestUpload() {},
+    /**
+     * 覆盖默认的上传行为
+     */
+    requestUpload()
+    {
+    },
+
     // 向左旋转
-    rotateLeft() {
+    /**
+     * 图片向左旋转
+     */
+    rotateLeft()
+    {
       this.$refs.cropper.rotateLeft()
     },
+
     // 向右旋转
-    rotateRight() {
+    /**
+     * 图片向右旋转
+     */
+    rotateRight()
+    {
       this.$refs.cropper.rotateRight()
     },
+
     // 图片缩放
-    changeScale(num) {
+    /**
+     * 图片缩放
+     * @param {Number} num - 缩放倍数
+     */
+    changeScale(num)
+    {
       num = num || 1
       this.$refs.cropper.changeScale(num)
     },
+
     // 上传预处理
-    beforeUpload(file) {
-      if (file.type.indexOf('image/') == -1) {
+    /**
+     * 上传前读取图片文件
+     * @param {File} file - 上传的图片文件
+     */
+    beforeUpload(file)
+    {
+      if (file.type.indexOf('image/') == -1)
+      {
         this.$modal.msgError('文件格式错误，请上传图片类型,如：JPG，PNG后缀的文件。')
-      } else {
+      } else
+      {
         const reader = new FileReader()
         reader.readAsDataURL(file)
-        reader.onload = () => {
+        reader.onload = () =>
+        {
           this.options.img = reader.result
           this.options.filename = file.name
         }
       }
     },
+
     // 上传图片
-    uploadImg() {
-      this.$refs.cropper.getCropBlob((data) => {
+    /**
+     * 裁剪并上传头像图片
+     */
+    uploadImg()
+    {
+      this.$refs.cropper.getCropBlob((data) =>
+      {
         let formData = new FormData()
         formData.append('avatarfile', data, this.options.filename)
-        uploadAvatar(formData).then((response) => {
+        uploadAvatar(formData).then((response) =>
+        {
           this.open = false
           this.options.img = process.env.VUE_APP_BASE_API + response.imgUrl
           store.commit('SET_AVATAR', this.options.img)
@@ -220,12 +279,23 @@ export default {
         })
       })
     },
+
     // 实时预览
-    realTime(data) {
+    /**
+     * 实时预览裁剪结果
+     * @param {Object} data - 预览数据
+     */
+    realTime(data)
+    {
       this.previews = data
     },
+
     // 关闭窗口
-    closeDialog() {
+    /**
+     * 关闭弹窗并还原头像
+     */
+    closeDialog()
+    {
       this.options.img = store.getters.avatar
       this.visible = false
       window.removeEventListener('resize', this.resizeHandler)
@@ -233,28 +303,3 @@ export default {
   },
 }
 </script>
-<style scoped lang="scss">
-.user-info-head {
-  position: relative;
-  display: inline-block;
-  height: 120px;
-}
-
-.user-info-head:hover:after {
-  content: '+';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  color: #eee;
-  background: rgba(0, 0, 0, 0.5);
-  font-size: 24px;
-  font-style: normal;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  cursor: pointer;
-  line-height: 110px;
-  border-radius: 50%;
-}
-</style>

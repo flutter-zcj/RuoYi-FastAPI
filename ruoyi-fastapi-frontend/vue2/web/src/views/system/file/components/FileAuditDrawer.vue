@@ -1,3 +1,8 @@
+<style lang="scss" scoped>
+.drawer-content { padding: 0 20px 20px; }
+.drawer-footer { padding-top: 20px; text-align: right; }
+</style>
+
 <template>
   <div>
     <el-drawer
@@ -5,107 +10,51 @@
       :visible.sync="visible"
       size="80%"
       append-to-body
-      @closed="detailOpen = false"
-    >
+      @closed="detailOpen = false">
       <div class="drawer-content">
         <el-form
           ref="queryForm"
           :model="queryParams"
           size="small"
           :inline="true"
-          label-width="68px"
-        >
-          <el-form-item
-            label="操作类型"
-            prop="action"
-          >
+          label-width="68px">
+          <el-form-item label="操作类型" prop="action">
             <el-select
               v-model="queryParams.action"
               placeholder="全部操作"
               clearable
-              style="width: 200px"
-            >
-              <el-option
-                label="上传"
-                value="upload"
-              />
-              <el-option
-                label="下载"
-                value="download"
-              />
-              <el-option
-                label="授权变更"
-                value="acl_update"
-              />
-              <el-option
-                label="归属转移"
-                value="transfer"
-              />
-              <el-option
-                label="移入回收站"
-                value="delete"
-              />
-              <el-option
-                label="恢复"
-                value="restore"
-              />
-              <el-option
-                label="永久清理"
-                value="purge"
-              />
-              <el-option
-                label="存储对账"
-                value="reconcile"
-              />
-              <el-option
-                label="保留延期"
-                value="retention_extend"
-              />
-              <el-option
-                label="到期处置"
-                value="retention_dispose"
-              />
+              style="width: 200px">
+              <el-option label="上传" value="upload"/>
+              <el-option label="下载" value="download"/>
+              <el-option label="授权变更" value="acl_update"/>
+              <el-option label="归属转移" value="transfer"/>
+              <el-option label="移入回收站" value="delete"/>
+              <el-option label="恢复" value="restore"/>
+              <el-option label="永久清理" value="purge"/>
+              <el-option label="存储对账" value="reconcile"/>
+              <el-option label="保留延期" value="retention_extend"/>
+              <el-option label="到期处置" value="retention_dispose"/>
             </el-select>
           </el-form-item>
-          <el-form-item
-            label="操作结果"
-            prop="result"
-          >
+          <el-form-item label="操作结果" prop="result">
             <el-select
               v-model="queryParams.result"
               placeholder="全部结果"
               clearable
-              style="width: 200px"
-            >
-              <el-option
-                label="已授权"
-                value="allowed"
-              />
-              <el-option
-                label="已拒绝"
-                value="denied"
-              />
-              <el-option
-                label="已完成"
-                value="completed"
-              />
-              <el-option
-                label="失败"
-                value="failed"
-              />
+              style="width: 200px">
+              <el-option label="已授权" value="allowed"/>
+              <el-option label="已拒绝" value="denied"/>
+              <el-option label="已完成" value="completed"/>
+              <el-option label="失败" value="failed"/>
             </el-select>
           </el-form-item>
-          <el-form-item
-            label="操作用户"
-            prop="actorName"
-          >
+          <el-form-item label="操作用户" prop="actorName">
             <el-input
               v-model="queryParams.actorName"
               placeholder="请输入用户名"
               clearable
               style="width: 200px"
-              @keyup.enter.native="handleQuery"
-            />
+              @keyup.enter.native="handleQuery"/>
           </el-form-item>
           <el-form-item label="操作时间">
             <el-date-picker
@@ -115,35 +64,26 @@
               range-separator="-"
               start-placeholder="开始时间"
               end-placeholder="结束时间"
-              style="width: 200px"
-            />
+              style="width: 200px"/>
           </el-form-item>
           <el-form-item label-width="0">
             <el-button
               type="primary"
               icon="el-icon-search"
               size="mini"
-              @click="handleQuery"
-              >搜索</el-button
-            >
+              @click="handleQuery">搜索</el-button>
             <el-button
               icon="el-icon-refresh"
               size="mini"
-              @click="resetQuery"
-              >重置</el-button
-            >
+              @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
-        <el-table
-          v-loading="loading"
-          :data="auditList"
-        >
+        <el-table v-loading="loading" :data="auditList">
           <el-table-column
             label="操作"
             align="center"
             prop="action"
-            width="105"
-          >
+            width="105">
             <template slot-scope="scope">
               {{ actionLabel(scope.row.action) }}
             </template>
@@ -152,8 +92,7 @@
             label="结果"
             align="center"
             prop="result"
-            width="100"
-          >
+            width="100">
             <template slot-scope="scope">
               <el-tag :type="resultTagType(scope.row.result)">
                 {{ resultLabel(scope.row.result) }}
@@ -165,21 +104,18 @@
             align="center"
             prop="actorName"
             width="120"
-            :show-overflow-tooltip="true"
-          />
+            :show-overflow-tooltip="true"/>
           <el-table-column
             label="客户端地址"
             align="center"
             prop="ipAddress"
             width="140"
-            :show-overflow-tooltip="true"
-          />
+            :show-overflow-tooltip="true"/>
           <el-table-column
             label="传输字节"
             align="right"
             prop="bytesSent"
-            width="110"
-          >
+            width="110">
             <template slot-scope="scope">
               {{ scope.row.bytesSent ? formatFileSize(scope.row.bytesSent) : '-' }}
             </template>
@@ -189,14 +125,12 @@
             align="left"
             prop="errorMessage"
             min-width="140"
-            :show-overflow-tooltip="true"
-          />
+            :show-overflow-tooltip="true"/>
           <el-table-column
             label="访问时间"
             align="center"
             prop="accessTime"
-            width="180"
-          >
+            width="180">
             <template slot-scope="scope">
               {{ parseTime(scope.row.accessTime) }}
             </template>
@@ -204,18 +138,13 @@
           <el-table-column
             label="详情"
             align="center"
-            width="70"
-          >
+            width="70">
             <template slot-scope="scope">
-              <el-tooltip
-                content="查看审计详情"
-                placement="top"
-              >
+              <el-tooltip content="查看审计详情" placement="top">
                 <el-button
                   type="text"
                   icon="el-icon-view"
-                  @click="handleDetail(scope.row)"
-                />
+                  @click="handleDetail(scope.row)"/>
               </el-tooltip>
             </template>
           </el-table-column>
@@ -225,8 +154,7 @@
           :total="total"
           :page.sync="queryParams.pageNum"
           :limit.sync="queryParams.pageSize"
-          @pagination="getList"
-        />
+          @pagination="getList"/>
         <div class="drawer-footer">
           <el-button @click="visible = false">关 闭</el-button>
         </div>
@@ -237,12 +165,8 @@
       title="审计详情"
       :visible.sync="detailOpen"
       width="720px"
-      append-to-body
-    >
-      <el-descriptions
-        :column="2"
-        border
-      >
+      append-to-body>
+      <el-descriptions :column="2" border>
         <el-descriptions-item label="操作类型">
           {{ actionLabel(detail.action) }}
         </el-descriptions-item>
@@ -261,51 +185,35 @@
         <el-descriptions-item label="链路ID">
           {{ detail.traceId || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item
-          label="操作时间"
-          :span="2"
-        >
+        <el-descriptions-item label="操作时间" :span="2">
           {{ parseTime(detail.accessTime) }}
         </el-descriptions-item>
-        <el-descriptions-item
-          label="用户代理"
-          :span="2"
-        >
+        <el-descriptions-item label="用户代理" :span="2">
           {{ detail.userAgent || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item
-          label="失败原因"
-          :span="2"
-        >
+        <el-descriptions-item label="失败原因" :span="2">
           {{ detail.errorMessage || '-' }}
         </el-descriptions-item>
       </el-descriptions>
       <el-table
+        class="mt20"
         v-if="detailEntries.length"
         :data="detailEntries"
-        border
-        class="mt20"
-      >
+        border>
         <el-table-column
           label="详情项"
           prop="label"
-          width="180"
-        />
+          width="180"/>
         <el-table-column
           label="内容"
           prop="value"
-          :show-overflow-tooltip="true"
-        />
+          :show-overflow-tooltip="true"/>
       </el-table>
       <el-empty
         v-else
         description="无操作详情"
-        :image-size="60"
-      />
-      <div
-        slot="footer"
-        class="dialog-footer"
-      >
+        :image-size="60"/>
+      <div class="dialog-footer" slot="footer">
         <el-button @click="detailOpen = false">关 闭</el-button>
       </div>
     </el-dialog>
@@ -313,6 +221,45 @@
 </template>
 
 <script>
+/**
+ * 组件名称：FileAuditDrawer
+ * 功能说明：文件审计抽屉，展示文件访问日志并支持查看操作详情
+ * 研发时间：2026/07/26
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ * @data {Boolean} visible     - 抽屉是否可见
+ * @data {Boolean} loading     - 数据加载状态
+ * @data {String}  fileId      - 当前文件标识
+ * @data {String}  fileName    - 当前文件名
+ * @data {Array}   auditList   - 审计日志列表
+ * @data {Number}  total       - 审计日志总条数
+ * @data {Array}   dateRange   - 操作时间范围
+ * @data {Boolean} detailOpen  - 审计详情弹窗是否可见
+ * @data {Object}  detail      - 当前审计详情数据
+ * @data {Object}  queryParams - 审计日志查询条件
+ *
+ * 事件说明：
+ * @event actionLabel    - 操作类型文本转换
+ * @event formatFileSize - 格式化文件大小
+ * @event resultLabel    - 操作结果文本转换
+ * @event resultTagType  - 操作结果标签类型转换
+ * @event open           - 打开抽屉并加载审计日志
+ * @event getList        - 获取审计日志列表
+ * @event handleQuery    - 审计日志查询
+ * @event resetQuery     - 重置查询条件
+ * @event handleDetail   - 查看审计详情
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/07/26     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import { listFileAccessLog } from '@/api/system/file'
 import {
   actionLabel,
@@ -322,9 +269,12 @@ import {
   resultTagType,
 } from './fileFormatters'
 
-export default {
+export default
+{
   name: 'FileAuditDrawer',
-  data() {
+
+  data()
+  {
     return {
       visible: false,
       loading: false,
@@ -344,17 +294,47 @@ export default {
       },
     }
   },
-  computed: {
-    detailEntries() {
+
+  computed:
+  {
+    /**
+     * 解析当前审计详情的操作详情项
+     * @returns {Array} 操作详情项列表
+     */
+    detailEntries()
+    {
       return parseOperationDetail(this.detail.operationDetail)
-    },
+    }
   },
-  methods: {
+
+  methods:
+  {
+    /**
+     * 操作类型文本转换
+     */
     actionLabel,
+
+    /**
+     * 格式化文件大小
+     */
     formatFileSize,
+
+    /**
+     * 操作结果文本转换
+     */
     resultLabel,
+
+    /**
+     * 操作结果标签类型转换
+     */
     resultTagType,
-    open(row) {
+
+    /**
+     * 打开抽屉并加载审计日志
+     * @param {Object} row - 当前文件行数据
+     */
+    open(row)
+    {
       this.fileId = row.fileId
       this.fileName = row.originalName
       Object.assign(this.queryParams, {
@@ -367,7 +347,12 @@ export default {
       this.visible = true
       this.getList()
     },
-    getList() {
+
+    /**
+     * 获取审计日志列表
+     */
+    getList()
+    {
       this.loading = true
       listFileAccessLog(this.fileId, this.addDateRange({ ...this.queryParams }, this.dateRange))
         .then((response) => {
@@ -378,31 +363,36 @@ export default {
           this.loading = false
         })
     },
-    handleQuery() {
+
+    /**
+     * 审计日志查询
+     */
+    handleQuery()
+    {
       this.queryParams.pageNum = 1
       this.getList()
     },
-    resetQuery() {
+
+    /**
+     * 重置查询条件
+     */
+    resetQuery()
+    {
       this.dateRange = []
       this.$refs.queryForm.resetFields()
       this.queryParams.pageNum = 1
       this.getList()
     },
-    handleDetail(row) {
+
+    /**
+     * 查看审计详情
+     * @param {Object} row - 当前审计日志行数据
+     */
+    handleDetail(row)
+    {
       this.detail = row
       this.detailOpen = true
     },
   },
 }
 </script>
-
-<style scoped>
-.drawer-content {
-  padding: 0 20px 20px;
-}
-
-.drawer-footer {
-  padding-top: 20px;
-  text-align: right;
-}
-</style>

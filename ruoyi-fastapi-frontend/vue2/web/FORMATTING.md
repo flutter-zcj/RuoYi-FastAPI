@@ -1,6 +1,6 @@
 # 管理端前端格式化规范
 
-本规范适用于 `ruoyi-fastapi-frontend/vue2/web`，覆盖 Vue 单文件组件、JavaScript / TypeScript、CSS / SCSS / Less、HTML、JSON、Markdown 和 YAML，包括 `src`、`plugins`、`build`、`tests` 以及自行维护的 `public` 脚本。
+本规范适用于 `ruoyi-fastapi-frontend`，覆盖 Vue 单文件组件、JavaScript / TypeScript、CSS / SCSS / Less、HTML、JSON、Markdown 和 YAML，包括 `src`、`plugins`、`build`、`tests` 以及自行维护的 `public` 脚本。
 
 ## 参考项目与工具
 
@@ -66,7 +66,7 @@ const handleSubmit = () => {
 在仓库根目录进入管理端并安装依赖：
 
 ```sh
-cd ruoyi-fastapi-frontend/vue2/web
+cd ruoyi-fastapi-frontend
 npm install
 ```
 
@@ -82,7 +82,7 @@ npm run format:check
 npm run format
 ```
 
-也可以在仓库根目录运行 `npm --prefix ruoyi-fastapi-frontend/vue2/web run format:check` 或 `npm --prefix ruoyi-fastapi-frontend/vue2/web run format`。
+也可以在仓库根目录运行 `npm --prefix ruoyi-fastapi-frontend run format:check` 或 `npm --prefix ruoyi-fastapi-frontend run format`。
 
 只处理本次修改的文件时，在管理端目录执行：
 
@@ -99,7 +99,7 @@ npm exec -- prettier --check src/views/system/user/index.vue src/api/system/user
 
 Vue 语言服务沿用已有支持 Vue 2.7 的编辑器配置。工作区只包含管理端，使用的缩进设置与 `.editorconfig` 一致。工作区文件可随 Git 共享，也不依赖当前仓库忽略的 `.vscode` 目录。
 
-如果继续在 VS Code 中打开整个仓库，可将 `frontend.code-workspace` 的 `settings` 合并到个人工作区设置。`prettier.requireConfig: true` 使格式化仅在有 Prettier 配置的项目中运行；格式化具体文件时会就近查找 `.prettierrc.json`。在仓库根工作区使用时，还需将 `prettier.ignorePath` 设置为 `ruoyi-fastapi-frontend/vue2/web/.prettierignore`，保持忽略范围一致。
+如果继续在 VS Code 中打开整个仓库，可将 `frontend.code-workspace` 的 `settings` 合并到个人工作区设置。`prettier.requireConfig: true` 使格式化仅在有 Prettier 配置的项目中运行；格式化具体文件时会就近查找 `.prettierrc.json`。在仓库根工作区使用时，还需将 `prettier.ignorePath` 设置为 `ruoyi-fastapi-frontend/.prettierignore`，保持忽略范围一致。
 
 WebStorm 等支持 Prettier / EditorConfig 的编辑器应选择管理端的本地 Prettier 包，并启用相应的保存格式化功能。
 

@@ -1,3 +1,12 @@
+<style lang="scss" scoped>
+.dashboard-editor-container { position: relative; padding: 32px; background-color: rgb(240, 242, 245);
+  .chart-wrapper { background: #fff; padding: 16px 16px 0; margin-bottom: 32px; }
+}
+@media (max-width: 1024px) {
+  .chart-wrapper { padding: 8px; }
+}
+</style>
+
 <template>
   <div class="dashboard-editor-container">
     <panel-group @handleSetLineChartData="handleSetLineChartData" />
@@ -10,8 +19,7 @@
       <el-col
         :xs="24"
         :sm="24"
-        :lg="8"
-      >
+        :lg="8">
         <div class="chart-wrapper">
           <raddar-chart />
         </div>
@@ -19,8 +27,7 @@
       <el-col
         :xs="24"
         :sm="24"
-        :lg="8"
-      >
+        :lg="8">
         <div class="chart-wrapper">
           <pie-chart />
         </div>
@@ -28,8 +35,7 @@
       <el-col
         :xs="24"
         :sm="24"
-        :lg="8"
-      >
+        :lg="8">
         <div class="chart-wrapper">
           <bar-chart />
         </div>
@@ -39,6 +45,26 @@
 </template>
 
 <script>
+/**
+ * 组件名称：Index
+ * 功能说明：首页仪表盘页面，展示各类统计图表
+ * 研发时间：2024/01/22
+ * 研发人员：insistence
+ *
+ * 变量说明：
+ * @data {Object} lineChartData - 当前折线图数据
+ *
+ * 事件说明：
+ * @event handleSetLineChartData - 切换折线图数据
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2024/01/22     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import PanelGroup from './dashboard/PanelGroup'
 import LineChart from './dashboard/LineChart'
 import RaddarChart from './dashboard/RaddarChart'
@@ -64,44 +90,36 @@ const lineChartData = {
   },
 }
 
-export default {
+export default
+{
   name: 'Index',
-  components: {
+
+  components:
+  {
     PanelGroup,
     LineChart,
     RaddarChart,
     PieChart,
     BarChart,
   },
-  data() {
+
+  data()
+  {
     return {
       lineChartData: lineChartData.newVisitis,
     }
   },
-  methods: {
-    handleSetLineChartData(type) {
+
+  methods:
+  {
+    /**
+     * 切换折线图数据
+     * @param {String} type - 折线图数据类型
+     */
+    handleSetLineChartData(type)
+    {
       this.lineChartData = lineChartData[type]
     },
   },
 }
 </script>
-
-<style lang="scss" scoped>
-.dashboard-editor-container {
-  padding: 32px;
-  background-color: rgb(240, 242, 245);
-  position: relative;
-
-  .chart-wrapper {
-    background: #fff;
-    padding: 16px 16px 0;
-    margin-bottom: 32px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .chart-wrapper {
-    padding: 8px;
-  }
-}
-</style>

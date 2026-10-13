@@ -195,7 +195,7 @@ def test_npm_dependency_inspector_defaults_to_frontend_sibling_project() -> None
     """校验 npm 依赖检查器默认读取后端同级前端项目。"""
     inspector = NpmDependencyInspector()
 
-    assert inspector.frontend_root == BACKEND_ROOT.parent / 'ruoyi-fastapi-frontend' / 'vue3' / 'web'
+    assert inspector.frontend_root == BACKEND_ROOT.parent / 'ruoyi-fastapi-frontend'
 
 
 def test_plugin_dependency_install_planner_builds_valid_npm_install_targets() -> None:
@@ -251,12 +251,8 @@ def test_plugin_dependency_checker_checks_manifest_dependencies() -> None:
             'backend': {'module': 'plugins.demo'},
             'dependencies': {
                 'python': ['openai>=2.17.0', 'missing-python'],
-                'frontend': {
-                    'vue3': {
-                        'npm': ['vue>=3.5.0', 'missing-npm'],
-                        'npmDev': ['vite>=6.0.0', 'missing-dev-npm'],
-                    }
-                },
+                'npm': ['vue>=3.5.0', 'missing-npm'],
+                'npmDev': ['vite>=6.0.0', 'missing-dev-npm'],
             },
         }
     )
@@ -274,14 +270,14 @@ def test_plugin_dependency_checker_checks_manifest_dependencies() -> None:
 
 def test_plugin_dependency_checker_reads_npm_dependencies_from_plugin_manifest(tmp_path: Path) -> None:
     """校验依赖检查器只读取主插件清单中的 npm 依赖。"""
-    frontend_root = tmp_path / 'ruoyi-fastapi-frontend' / 'vue3' / 'web'
+    frontend_root = tmp_path / 'ruoyi-fastapi-frontend'
     manifest = PluginManifest.model_validate(
         {
             'id': 'demo',
             'name': '演示插件',
             'version': '1.0.0',
             'backend': {'module': 'plugins.demo'},
-            'dependencies': {'frontend': {'vue3': {'npm': ['vue>=3.5.0'], 'npmDev': ['markstream-vue']}}},
+            'dependencies': {'npm': ['vue>=3.5.0'], 'npmDev': ['markstream-vue']},
         }
     )
     checker = PluginDependencyChecker(
@@ -308,10 +304,7 @@ def test_plugin_dependency_checker_skips_npm_dependencies_in_built_frontend_mode
             'name': '演示插件',
             'version': '1.0.0',
             'backend': {'module': 'plugins.demo'},
-            'dependencies': {
-                'python': ['missing-python'],
-                'frontend': {'vue3': {'npm': ['missing-npm'], 'npmDev': ['missing-dev-npm']}},
-            },
+            'dependencies': {'python': ['missing-python'], 'npm': ['missing-npm'], 'npmDev': ['missing-dev-npm']},
         }
     )
     checker = PluginDependencyChecker(

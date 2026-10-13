@@ -1,120 +1,173 @@
+<style lang="scss" scoped>
+.app-breadcrumb.el-breadcrumb { display: inline-block; font-size: 14px; line-height: 50px; .no-redirect { color: #97a8be; cursor: text; } }
+</style>
+
 <template>
-  <el-breadcrumb
-    class="app-breadcrumb"
-    separator="/"
-  >
+  <el-breadcrumb class="app-breadcrumb" separator="/">
     <transition-group name="breadcrumb">
-      <el-breadcrumb-item
-        v-for="(item, index) in levelList"
-        :key="item.path"
-      >
-        <span
-          v-if="item.redirect === 'noRedirect' || index == levelList.length - 1"
-          class="no-redirect"
-          >{{ item.meta.title }}</span
-        >
-        <a
-          v-else
-          @click.prevent="handleLink(item)"
-          >{{ item.meta.title }}</a
-        >
+      <el-breadcrumb-item v-for="(item, index) in levelList" :key="item.path">
+        <span class="no-redirect" v-if="item.redirect === 'noRedirect' || index == levelList.length - 1">{{ item.meta.title }}</span>
+        <a v-else @click.prevent="handleLink(item)">{{ item.meta.title }}</a>
       </el-breadcrumb-item>
     </transition-group>
   </el-breadcrumb>
 </template>
 
 <script>
-export default {
-  data() {
+/**
+ * 组件名称：Breadcrumb
+ * 功能说明：面包屑导航组件，根据当前路由生成层级导航
+ * 研发时间：2024/01/22
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
+export default
+{
+  data()
+  {
     return {
-      levelList: null,
+      levelList: null
     }
   },
-  watch: {
-    $route(route) {
+
+  watch:
+  {
+    /**
+     * 监听路由变化，重新生成面包屑
+     * @param {Object} route - 当前路由对象
+     */
+    $route(route)
+    {
       // if you go to the redirect page, do not update the breadcrumbs
-      if (route.path.startsWith('/redirect/')) {
+      if (route.path.startsWith('/redirect/'))
+      {
         return
       }
       this.getBreadcrumb()
-    },
+    }
   },
-  created() {
+
+  created()
+  {
     this.getBreadcrumb()
   },
-  methods: {
-    getBreadcrumb() {
+
+  methods:
+  {
+    /**
+     * 生成面包屑列表
+     */
+    getBreadcrumb()
+    {
       // only show routes with meta.title
       let matched = []
       const router = this.$route
       const pathNum = this.findPathNum(router.path)
       // multi-level menu
-      if (pathNum > 2) {
+      if (pathNum > 2)
+      {
         const reg = /\/\w+/gi
-        const pathList = router.path.match(reg).map((item, index) => {
+        const pathList = router.path.match(reg).map((item, index) =>
+        {
           if (index !== 0) item = item.slice(1)
           return item
         })
         this.getMatched(pathList, this.$store.getters.defaultRoutes, matched)
-      } else {
+      } else
+      {
         matched = router.matched.filter((item) => item.meta && item.meta.title)
       }
       // 判断是否为首页
-      if (!this.isDashboard(matched[0])) {
+      if (!this.isDashboard(matched[0]))
+      {
         matched = [{ path: '/index', meta: { title: '首页' } }].concat(matched)
       }
       this.levelList = matched.filter(
         (item) => item.meta && item.meta.title && item.meta.breadcrumb !== false
       )
     },
-    findPathNum(str, char = '/') {
+
+    /**
+     * 统计路径中指定字符出现的次数
+     * @param {String} str - 路径字符串
+     * @param {String} char - 待统计字符
+     * @returns {Number} 出现次数
+     */
+    findPathNum(str, char = '/')
+    {
       let index = str.indexOf(char)
       let num = 0
-      while (index !== -1) {
+      while (index !== -1)
+      {
         num++
         index = str.indexOf(char, index + 1)
       }
       return num
     },
-    getMatched(pathList, routeList, matched) {
+
+    /**
+     * 递归匹配路由，填充面包屑列表
+     * @param {Array} pathList - 路径片段列表
+     * @param {Array} routeList - 路由列表
+     * @param {Array} matched - 已匹配的路由列表
+     */
+    getMatched(pathList, routeList, matched)
+    {
       let data = routeList.find(
         (item) => item.path == pathList[0] || (item.name += '').toLowerCase() == pathList[0]
       )
-      if (data) {
+      if (data)
+      {
         matched.push(data)
-        if (data.children && pathList.length) {
+        if (data.children && pathList.length)
+        {
           pathList.shift()
           this.getMatched(pathList, data.children, matched)
         }
       }
     },
-    isDashboard(route) {
+
+    /**
+     * 判断是否为首页
+     * @param {Object} route - 路由对象
+     * @returns {Boolean} 是否首页
+     */
+    isDashboard(route)
+    {
       const name = route && route.name
-      if (!name) {
+      if (!name)
+      {
         return false
       }
       return name.trim() === 'Index'
     },
-    handleLink(item) {
+
+    /**
+     * 处理面包屑点击跳转
+     * @param {Object} item - 面包屑项
+     */
+    handleLink(item)
+    {
       const { redirect, path } = item
-      if (redirect) {
+      if (redirect)
+      {
         this.$router.push(redirect)
         return
       }
       this.$router.push(path)
-    },
-  },
-}
-</script>
-
-<style lang="scss" scoped>
-.app-breadcrumb.el-breadcrumb {
-  display: inline-block;
-  font-size: 14px;
-  line-height: 50px;
-  .no-redirect {
-    color: #97a8be;
-    cursor: text;
+    }
   }
 }
-</style>
+</script>

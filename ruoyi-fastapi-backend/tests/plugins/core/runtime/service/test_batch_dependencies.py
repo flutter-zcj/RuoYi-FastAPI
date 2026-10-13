@@ -34,10 +34,8 @@ backend:
 dependencies:
   python:
     - missing-python
-  frontend:
-    vue3:
-      npm:
-        - vue>=3.5.0
+  npm:
+    - vue>=3.5.0
 """,
     )
 
@@ -392,12 +390,10 @@ backend:
 dependencies:
   python:
     - missing-python
-  frontend:
-    vue3:
-      npm:
-        - missing-npm
-      npmDev:
-        - missing-dev-npm
+  npm:
+    - missing-npm
+  npmDev:
+    - missing-dev-npm
 """,
     )
 
@@ -698,10 +694,8 @@ permissions:
 dependencies:
   python:
     - missing-python
-  frontend:
-    vue3:
-      npm:
-        - missing-npm
+  npm:
+    - missing-npm
 """,
     )
     create_frontend_view(backend_root, 'demo')

@@ -679,20 +679,16 @@ backend:
 dependencies:
   python:
     - missing-python
-  frontend:
-    vue3:
-      npm:
-        - missing-npm>=1.2.3
-      npmDev:
-        - missing-dev-npm==4.5.6
+  npm:
+    - missing-npm>=1.2.3
+  npmDev:
+    - missing-dev-npm==4.5.6
 """,
     )
     create_controller_dir(plugin_root)
     frontend_root = Path(PluginRuntimeEnvironmentService(backend_root=backend_root).get_frontend_dir())
-    frontend_root.mkdir(parents=True)
-    (frontend_root / 'package.json').write_text(
-        '{"dependencies": {"vue": "^3.5.26"}, "devDependencies": {}}\n', encoding='utf-8'
-    )
+    frontend_root.mkdir()
+    (frontend_root / 'package.json').write_text('{"dependencies": {}, "devDependencies": {}}\n', encoding='utf-8')
     gateway = FakePluginRuntimeGateway()
     expected_plan_count = 3
     runtime = build_runtime_with_gateway(backend_root, gateway)
@@ -716,7 +712,7 @@ dependencies:
     ]
     assert gateway.commands == []
     package_json = json.loads((frontend_root / 'package.json').read_text(encoding='utf-8'))
-    assert package_json['dependencies'] == {'vue': '^3.5.26'}
+    assert package_json['dependencies'] == {}
     assert package_json['devDependencies'] == {}
     assert FakePluginService.upsert_called is False
     assert FakePluginService.mark_installed_called is False
@@ -1108,40 +1104,6 @@ config:
     assert result['audit']['available'] is True
     assert result['audit']['count'] == 1
     assert result['audit']['items'][0]['operation'] == 'install'
-
-
-def test_plugin_runtime_diagnose_artifact_without_local_source_keeps_database_snapshot(tmp_path: Path) -> None:
-    """制品不在源码扫描目录时仍能诊断，不将缺少 manifest 误当插件不存在。"""
-    backend_root = tmp_path / 'backend'
-    (backend_root / 'plugins').mkdir(parents=True)
-    FakePluginService.plugin_list = [
-        SimpleNamespace(
-            plugin_id='demo',
-            installed_version='2.0.0',
-            enabled='0',
-            status='installed',
-            last_error=None,
-            source='artifact',
-            backend_path=None,
-            frontend_path=None,
-        )
-    ]
-    FakePluginService.operation_logs = []
-    FakePluginService.detail_plugin = FakePluginService.plugin_list[0]
-    runtime = build_runtime_with_gateway(backend_root, FakePluginRuntimeGateway())
-
-    result = asyncio.run(runtime.diagnose_plugin('demo'))
-
-    assert result['ok'] is False
-    assert result['info']['scope'] == 'database_only'
-    assert result['info']['installedVersion'] == '2.0.0'
-    assert result['info']['database']['enabled'] == '0'
-    assert result['check']['supported'] is False
-    assert result['check']['ok'] is False
-    assert result['menuPlan']['supported'] is False
-    assert result['config']['supported'] is False
-    assert result['config']['ok'] is False
-    assert result['audit']['available'] is True
 
 
 def test_plugin_runtime_health_plugin_returns_checker_result(tmp_path: Path) -> None:

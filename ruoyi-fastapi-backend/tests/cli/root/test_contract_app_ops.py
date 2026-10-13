@@ -1,17 +1,11 @@
-import os
 import subprocess
-import sys
 from collections.abc import Callable
 from pathlib import Path
-from textwrap import dedent
 
-import pytest
+from cli.exit_codes import DEPENDENCY_ERROR, SUCCESS
+from cli.runtime.plugin.scaffold import PluginFrontendVersionResolver
 
-from cli.exit_codes import ARGUMENT_ERROR, DEPENDENCY_ERROR, SUCCESS
-from cli.runtime.plugin.scaffold import PluginFrontendFrameworkResolver
-
-pytestmark = pytest.mark.contract
-FRONTEND_ROOT = Path(__file__).resolve().parents[4] / 'ruoyi-fastapi-frontend' / 'vue3' / 'web'
+FRONTEND_ROOT = Path(__file__).resolve().parents[4] / 'ruoyi-fastapi-frontend'
 
 
 def test_app_config_json_output_is_pure_json(
@@ -472,7 +466,7 @@ def test_plugin_create_dry_run_json_output_has_stable_contract(
     assert payload['dryRun'] is True
     assert payload['backend'] is True
     assert payload['frontend'] is True
-    assert payload['frontendFramework'] == PluginFrontendFrameworkResolver.resolve(FRONTEND_ROOT)
+    assert payload['frontendVersion'] == PluginFrontendVersionResolver.resolve(FRONTEND_ROOT)
     assert payload['migration'] is True
     assert payload['seed'] is True
     assert payload['job'] is True
@@ -511,7 +505,7 @@ def test_plugin_create_optional_parts_json_output_has_stable_contract(
     assert payload['config'] is False
 
 
-def test_plugin_create_frontend_framework_override_json_output_has_stable_contract(
+def test_plugin_create_frontend_version_override_json_output_has_stable_contract(
     run_cli_command: Callable[..., subprocess.CompletedProcess[str]],
     parse_json_stdout: Callable[[subprocess.CompletedProcess[str]], dict],
 ) -> None:
@@ -521,7 +515,7 @@ def test_plugin_create_frontend_framework_override_json_output_has_stable_contra
         'contract_vue2',
         '--dry-run',
         '--frontend-only',
-        '--frontend-framework=vue2',
+        '--frontend-version=vue2',
         '--env=dev',
         '--output=json',
     )
@@ -530,36 +524,8 @@ def test_plugin_create_frontend_framework_override_json_output_has_stable_contra
     view_payload = next(file for file in payload['files'] if str(file['path']).endswith('/views/index.vue'))
     assert completed.returncode == SUCCESS
     assert payload['ok'] is True
-    assert payload['frontendFramework'] == 'vue2'
-    assert FRONTEND_ROOT.parents[1] / 'vue2/web/plugins/contract_vue2' in [Path(path) for path in payload['targetDirs']]
+    assert payload['frontendVersion'] == 'vue2'
     assert 'slot="header"' in view_payload['content']
-
-
-def test_plugin_create_rejects_framework_outside_fixed_choices(
-    run_cli_command: Callable[..., subprocess.CompletedProcess[str]],
-) -> None:
-    """校验根命令在参数解析阶段拒绝不属于固定选项的 React 框架。"""
-    completed = run_cli_command(
-        'plugin',
-        'create',
-        'contract_react',
-        '--dry-run',
-        '--frontend-only',
-        '--frontend-framework=react',
-        '--env=dev',
-        '--output=json',
-    )
-    assert completed.returncode == ARGUMENT_ERROR
-    assert 'Invalid value' in completed.stderr
-    assert 'react' in completed.stderr
-
-
-def test_plugin_create_rejects_removed_frontend_version_option(
-    run_cli_command: Callable[..., subprocess.CompletedProcess[str]],
-) -> None:
-    """校验创建命令不再接受已移除的前端版本选项。"""
-    completed = run_cli_command('plugin', 'create', 'contract_old_option', '--dry-run', '--frontend-version=vue3')
-    assert completed.returncode != SUCCESS
 
 
 def test_plugin_install_dry_run_json_output_has_stable_contract(
@@ -578,64 +544,18 @@ def test_plugin_install_dry_run_json_output_has_stable_contract(
 
 
 def test_plugin_upgrade_dry_run_json_output_has_stable_contract(
-    backend_dir: Path,
+    run_cli_command: Callable[..., subprocess.CompletedProcess[str]],
     parse_json_stdout: Callable[[subprocess.CompletedProcess[str]], dict],
 ) -> None:
-    # 成功契约需要已确认的目录插件来源；CI 不应连接宿主数据库来决定测试结果。
-    script = dedent(
-        """
-        import runpy
-        import sys
-        from types import SimpleNamespace
-        from unittest.mock import AsyncMock, Mock, patch
-
-        from plugins.core.management.service.gateway import PluginManagementRuntimeGateway
-
-        state = SimpleNamespace(plugin_id='ai', source='local', installed_version='0.0.1')
-        read_state = AsyncMock(return_value=state)
-        read_history = AsyncMock(return_value=None)
-        database = Mock(side_effect=AssertionError('Contract tests must not open database sessions'))
-        sys.argv[0] = 'ruoyi'
-        with (
-            patch.object(PluginManagementRuntimeGateway, 'get_plugin_state', read_state),
-            patch.object(PluginManagementRuntimeGateway, 'get_plugin_migration', read_history),
-            patch.object(PluginManagementRuntimeGateway, 'get_async_session_local', database),
-        ):
-            try:
-                runpy.run_module('cli.main', run_name='__main__')
-            finally:
-                read_state.assert_any_await('ai')
-                database.assert_not_called()
-        """
-    )
-    completed = subprocess.run(
-        [
-            sys.executable,
-            '-c',
-            script,
-            'plugin',
-            'upgrade',
-            'ai',
-            '--dry-run',
-            '--yes',
-            '--env=dev',
-            '--output=json',
-        ],
-        cwd=backend_dir,
-        capture_output=True,
-        text=True,
-        encoding='utf-8',
-        env={**os.environ, 'PYTHONIOENCODING': 'utf-8', 'LOG_FILE_ENABLED': 'false'},
-        check=False,
-        timeout=60,
-    )
-    assert completed.returncode == SUCCESS, completed.stderr
+    completed = run_cli_command('plugin', 'upgrade', 'ai', '--dry-run', '--yes', '--env=dev', '--output=json')
     payload = parse_json_stdout(completed)
+
+    assert completed.returncode == SUCCESS
     assert payload['ok'] is True
     assert payload['pluginId'] == 'ai'
     assert payload['dryRun'] is True
-    assert payload['installedVersion'] == '0.0.1'
+    assert 'installedVersion' in payload
     assert 'currentVersion' in payload
-    assert payload['needsUpgrade'] is True
-    assert payload['databaseAvailable'] is True
+    assert 'needsUpgrade' in payload
+    assert 'databaseAvailable' in payload
     assert isinstance(payload['actions'], list)

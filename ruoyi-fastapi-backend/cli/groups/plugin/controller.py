@@ -243,7 +243,7 @@ class PluginCommandController:
         :return: None
         """
         ctx = self.context_factory.build_readonly(env, output)
-        payload = self.execution_service.run_async(self.plugin_runtime.diagnose_plugin_with_runtime(plugin_id))
+        payload = self.execution_service.run_async(self.core_runtime.diagnose_plugin(plugin_id))
         if output_file.strip():
             payload = PluginCommandFileAdapter.write_json_file(
                 payload,
@@ -661,7 +661,7 @@ class PluginCommandController:
             job=not options.no_job,
             config=not options.no_config,
             test=not options.no_test,
-            frontend_framework=options.frontend_framework,
+            frontend_version=options.frontend_version,
             dry_run=options.dry_run,
         )
         self.execution_service.complete_payload_with_text(

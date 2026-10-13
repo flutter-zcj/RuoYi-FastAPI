@@ -1,3 +1,25 @@
+<style lang="scss">
+.editor, .ql-toolbar { white-space: pre-wrap !important; line-height: normal !important; }
+.quill-img { display: none; }
+.ql-snow .ql-tooltip[data-mode='link']::before { content: '请输入链接地址:'; }
+.ql-snow .ql-tooltip.ql-editing a.ql-action::after { border-right: 0px; padding-right: 0px; content: '保存'; }
+.ql-snow .ql-tooltip[data-mode='video']::before { content: '请输入视频地址:'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label::before, .ql-snow .ql-picker.ql-size .ql-picker-item::before { content: '14px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value='small']::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value='small']::before { content: '10px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value='large']::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value='large']::before { content: '18px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value='huge']::before, .ql-snow .ql-picker.ql-size .ql-picker-item[data-value='huge']::before { content: '32px'; }
+.ql-snow .ql-picker.ql-header .ql-picker-label::before, .ql-snow .ql-picker.ql-header .ql-picker-item::before { content: '文本'; }
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='1']::before, .ql-snow .ql-picker.ql-header .ql-picker-item[data-value='1']::before { content: '标题1'; }
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='2']::before, .ql-snow .ql-picker.ql-header .ql-picker-item[data-value='2']::before { content: '标题2'; }
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='3']::before, .ql-snow .ql-picker.ql-header .ql-picker-item[data-value='3']::before { content: '标题3'; }
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='4']::before, .ql-snow .ql-picker.ql-header .ql-picker-item[data-value='4']::before { content: '标题4'; }
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='5']::before, .ql-snow .ql-picker.ql-header .ql-picker-item[data-value='5']::before { content: '标题5'; }
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='6']::before, .ql-snow .ql-picker.ql-header .ql-picker-item[data-value='6']::before { content: '标题6'; }
+.ql-snow .ql-picker.ql-font .ql-picker-label::before, .ql-snow .ql-picker.ql-font .ql-picker-item::before { content: '标准字体'; }
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value='serif']::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value='serif']::before { content: '衬线字体'; }
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value='monospace']::before, .ql-snow .ql-picker.ql-font .ql-picker-item[data-value='monospace']::before { content: '等宽字体'; }
+</style>
+
 <template>
   <div>
     <el-upload
@@ -10,18 +32,47 @@
       :headers="headers"
       style="display: none"
       ref="upload"
-      v-if="this.type == 'url'"
-    >
+      v-if="this.type == 'url'">
     </el-upload>
     <div
       class="editor"
       ref="editor"
-      :style="styles"
-    ></div>
+      :style="styles"></div>
   </div>
 </template>
 
 <script>
+/**
+ * 组件名称：Editor
+ * 功能说明：富文本编辑器组件，基于 Quill，支持图片上传与事件回调
+ * 研发时间：2024/01/22
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ * @prop {String}  value     - 编辑器的内容
+ * @prop {Number}  height    - 高度
+ * @prop {Number}  minHeight - 最小高度
+ * @prop {Boolean} readOnly  - 只读
+ * @prop {Number}  fileSize  - 上传文件大小限制(MB)
+ * @prop {String}  type      - 类型（base64格式、url格式）
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ * @event input              - 内容变更
+ * @event on-change          - 编辑器内容变化
+ * @event on-text-change     - 文本变化
+ * @event on-selection-change - 选区变化
+ * @event on-editor-change   - 编辑器任意变化
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2024/01/22     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import axios from 'axios'
 import Quill from 'quill'
 import 'quill/dist/quill.core.css'
@@ -29,41 +80,28 @@ import 'quill/dist/quill.snow.css'
 import 'quill/dist/quill.bubble.css'
 import { getToken } from '@/utils/auth'
 
-export default {
+export default
+{
   name: 'Editor',
-  props: {
+
+  props:
+  {
     /* 编辑器的内容 */
-    value: {
-      type: String,
-      default: '',
-    },
+    value: { type: String, default: '' },
     /* 高度 */
-    height: {
-      type: Number,
-      default: null,
-    },
+    height: { type: Number, default: null },
     /* 最小高度 */
-    minHeight: {
-      type: Number,
-      default: null,
-    },
+    minHeight: { type: Number, default: null },
     /* 只读 */
-    readOnly: {
-      type: Boolean,
-      default: false,
-    },
+    readOnly: { type: Boolean, default: false },
     /* 上传文件大小限制(MB) */
-    fileSize: {
-      type: Number,
-      default: 5,
-    },
+    fileSize: { type: Number, default: 5 },
     /* 类型（base64格式、url格式） */
-    type: {
-      type: String,
-      default: 'url',
-    },
+    type: { type: String, default: 'url' }
   },
-  data() {
+
+  data()
+  {
     return {
       uploadUrl: process.env.VUE_APP_BASE_API + '/common/upload', // 上传的图片服务器地址
       headers: {
@@ -95,55 +133,91 @@ export default {
       },
     }
   },
-  computed: {
-    styles() {
+
+  computed:
+  {
+    /**
+     * 计算编辑器样式，包含高度与最小高度
+     * @returns {Object} 样式对象
+     */
+    styles()
+    {
       let style = {}
-      if (this.minHeight) {
+      if (this.minHeight)
+      {
         style.minHeight = `${this.minHeight}px`
       }
-      if (this.height) {
+      if (this.height)
+      {
         style.height = `${this.height}px`
       }
       return style
-    },
+    }
   },
-  watch: {
-    value: {
-      handler(val) {
-        if (val !== this.currentValue) {
+
+  watch:
+  {
+    value:
+    {
+      /**
+       * 监听内容变化并同步到编辑器
+       * @param {String} val - 新的内容
+       */
+      handler(val)
+      {
+        if (val !== this.currentValue)
+        {
           this.currentValue = val === null ? '' : val
-          if (this.Quill) {
+          if (this.Quill)
+          {
             this.Quill.clipboard.dangerouslyPasteHTML(this.currentValue)
           }
         }
       },
-      immediate: true,
-    },
+
+      immediate: true
+    }
   },
-  mounted() {
+
+  mounted()
+  {
     this.init()
   },
-  beforeDestroy() {
+
+  beforeDestroy()
+  {
     this.Quill = null
   },
-  methods: {
-    init() {
+
+  methods:
+  {
+    /**
+     * 初始化富文本编辑器并绑定各类事件
+     */
+    init()
+    {
       const editor = this.$refs.editor
       this.Quill = new Quill(editor, this.options)
       // 如果设置了上传地址则自定义图片上传事件
-      if (this.type == 'url') {
+      if (this.type == 'url')
+      {
         let toolbar = this.Quill.getModule('toolbar')
-        toolbar.addHandler('image', (value) => {
-          if (value) {
+        toolbar.addHandler('image', (value) =>
+        {
+          if (value)
+          {
             this.$refs.upload.$children[0].$refs.input.click()
-          } else {
+          }
+          else
+          {
             this.quill.format('image', false)
           }
         })
         this.Quill.root.addEventListener('paste', this.handlePasteCapture, true)
       }
       this.Quill.clipboard.dangerouslyPasteHTML(this.currentValue)
-      this.Quill.on('text-change', (delta, oldDelta, source) => {
+      this.Quill.on('text-change', (delta, oldDelta, source) =>
+      {
         const html = this.$refs.editor.children[0].innerHTML
         const text = this.Quill.getText()
         const quill = this.Quill
@@ -151,38 +225,58 @@ export default {
         this.$emit('input', html)
         this.$emit('on-change', { html, text, quill })
       })
-      this.Quill.on('text-change', (delta, oldDelta, source) => {
+      this.Quill.on('text-change', (delta, oldDelta, source) =>
+      {
         this.$emit('on-text-change', delta, oldDelta, source)
       })
-      this.Quill.on('selection-change', (range, oldRange, source) => {
+      this.Quill.on('selection-change', (range, oldRange, source) =>
+      {
         this.$emit('on-selection-change', range, oldRange, source)
       })
-      this.Quill.on('editor-change', (eventName, ...args) => {
+      this.Quill.on('editor-change', (eventName, ...args) =>
+      {
         this.$emit('on-editor-change', eventName, ...args)
       })
     },
-    // 上传前校检格式和大小
-    handleBeforeUpload(file) {
+
+    /**
+     * 上传前校验图片格式与大小
+     * @param {Object} file - 待上传文件
+     * @returns {Boolean} 是否允许上传
+     */
+    handleBeforeUpload(file)
+    {
       const type = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg']
       const isJPG = type.includes(file.type)
       // 检验文件格式
-      if (!isJPG) {
+      if (!isJPG)
+      {
         this.$message.error(`图片格式错误!`)
         return false
       }
       // 校检文件大小
-      if (this.fileSize) {
+      if (this.fileSize)
+      {
         const isLt = file.size / 1024 / 1024 < this.fileSize
-        if (!isLt) {
+        if (!isLt)
+        {
           this.$message.error(`上传文件大小不能超过 ${this.fileSize} MB!`)
           return false
         }
       }
       return true
     },
-    handleUploadSuccess(res, file) {
+
+    /**
+     * 上传成功回调
+     * @param {Object} res  - 接口返回结果
+     * @param {Object} file - 上传文件对象
+     */
+    handleUploadSuccess(res, file)
+    {
       // 如果上传成功
-      if (res.code == 200) {
+      if (res.code == 200)
+      {
         // 获取富文本组件实例
         let quill = this.Quill
         // 获取光标所在位置
@@ -191,20 +285,35 @@ export default {
         quill.insertEmbed(length, 'image', process.env.VUE_APP_BASE_API + res.fileName)
         // 调整光标到最后
         quill.setSelection(length + 1)
-      } else {
+      }
+      else
+      {
         this.$message.error('图片插入失败')
       }
     },
-    handleUploadError() {
+
+    /**
+     * 上传失败回调
+     */
+    handleUploadError()
+    {
       this.$message.error('图片插入失败')
     },
-    // 复制粘贴图片处理
-    handlePasteCapture(e) {
+
+    /**
+     * 复制粘贴图片处理
+     * @param {ClipboardEvent} e - 粘贴事件
+     */
+    handlePasteCapture(e)
+    {
       const clipboard = e.clipboardData || window.clipboardData
-      if (clipboard && clipboard.items) {
-        for (let i = 0; i < clipboard.items.length; i++) {
+      if (clipboard && clipboard.items)
+      {
+        for (let i = 0; i < clipboard.items.length; i++)
+        {
           const item = clipboard.items[i]
-          if (item.type.indexOf('image') !== -1) {
+          if (item.type.indexOf('image') !== -1)
+          {
             e.preventDefault()
             const file = item.getAsFile()
             this.insertImage(file)
@@ -212,7 +321,13 @@ export default {
         }
       }
     },
-    insertImage(file) {
+
+    /**
+     * 插入图片并上传
+     * @param {File} file - 图片文件
+     */
+    insertImage(file)
+    {
       const formData = new FormData()
       formData.append('file', file)
       axios
@@ -222,88 +337,11 @@ export default {
             Authorization: this.headers.Authorization,
           },
         })
-        .then((res) => {
+        .then((res) =>
+        {
           this.handleUploadSuccess(res.data)
         })
-    },
-  },
+    }
+  }
 }
 </script>
-
-<style>
-.editor,
-.ql-toolbar {
-  white-space: pre-wrap !important;
-  line-height: normal !important;
-}
-.quill-img {
-  display: none;
-}
-.ql-snow .ql-tooltip[data-mode='link']::before {
-  content: '请输入链接地址:';
-}
-.ql-snow .ql-tooltip.ql-editing a.ql-action::after {
-  border-right: 0px;
-  content: '保存';
-  padding-right: 0px;
-}
-.ql-snow .ql-tooltip[data-mode='video']::before {
-  content: '请输入视频地址:';
-}
-.ql-snow .ql-picker.ql-size .ql-picker-label::before,
-.ql-snow .ql-picker.ql-size .ql-picker-item::before {
-  content: '14px';
-}
-.ql-snow .ql-picker.ql-size .ql-picker-label[data-value='small']::before,
-.ql-snow .ql-picker.ql-size .ql-picker-item[data-value='small']::before {
-  content: '10px';
-}
-.ql-snow .ql-picker.ql-size .ql-picker-label[data-value='large']::before,
-.ql-snow .ql-picker.ql-size .ql-picker-item[data-value='large']::before {
-  content: '18px';
-}
-.ql-snow .ql-picker.ql-size .ql-picker-label[data-value='huge']::before,
-.ql-snow .ql-picker.ql-size .ql-picker-item[data-value='huge']::before {
-  content: '32px';
-}
-.ql-snow .ql-picker.ql-header .ql-picker-label::before,
-.ql-snow .ql-picker.ql-header .ql-picker-item::before {
-  content: '文本';
-}
-.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='1']::before,
-.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='1']::before {
-  content: '标题1';
-}
-.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='2']::before,
-.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='2']::before {
-  content: '标题2';
-}
-.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='3']::before,
-.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='3']::before {
-  content: '标题3';
-}
-.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='4']::before,
-.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='4']::before {
-  content: '标题4';
-}
-.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='5']::before,
-.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='5']::before {
-  content: '标题5';
-}
-.ql-snow .ql-picker.ql-header .ql-picker-label[data-value='6']::before,
-.ql-snow .ql-picker.ql-header .ql-picker-item[data-value='6']::before {
-  content: '标题6';
-}
-.ql-snow .ql-picker.ql-font .ql-picker-label::before,
-.ql-snow .ql-picker.ql-font .ql-picker-item::before {
-  content: '标准字体';
-}
-.ql-snow .ql-picker.ql-font .ql-picker-label[data-value='serif']::before,
-.ql-snow .ql-picker.ql-font .ql-picker-item[data-value='serif']::before {
-  content: '衬线字体';
-}
-.ql-snow .ql-picker.ql-font .ql-picker-label[data-value='monospace']::before,
-.ql-snow .ql-picker.ql-font .ql-picker-item[data-value='monospace']::before {
-  content: '等宽字体';
-}
-</style>

@@ -10,7 +10,6 @@ from config.env import DataBaseConfig
 from plugins.core.environment import PluginRuntimeEnvironmentService
 from plugins.core.manifest.menu_tree import PluginMenuTree
 from plugins.core.manifest.schema import PluginManifest
-from plugins.core.sdk.version import HOST_API_VERSION
 from plugins.core.validation.dependencies import DependencyRequirementParser
 from plugins.core.validation.python_requirements import PythonRequirementParser
 from plugins.core.validation.result import PluginValidationIssue
@@ -185,19 +184,14 @@ class PluginManifestChecker:
         """
         检查未声明版本约束的依赖。
 
-        检查 Python 依赖及 frontend 中所有前端框架分类，不依赖当前宿主选择。
-
         :param manifest: 插件 manifest
         :return: 未声明版本约束问题项列表
         """
         issues = []
         for dependency_kind, requirements in (
             ('python', manifest.dependencies.python),
-            *[
-                (f'frontend.{framework}.{kind}', requirements)
-                for framework, profile in manifest.dependencies.frontend.items()
-                for kind, requirements in (('npm', profile.npm), ('npmDev', profile.npm_dev))
-            ],
+            ('npm', manifest.dependencies.npm),
+            ('npmDev', manifest.dependencies.npm_dev),
         ):
             for index, requirement in enumerate(requirements):
                 if dependency_kind == 'python':
@@ -581,10 +575,6 @@ class PluginManifestChecker:
             ('pythonVersion', compatibility.python_version, lambda: self.python_version, 'python'),
             ('nodeVersion', compatibility.node_version, self._resolve_node_version, 'node'),
         ]
-        if manifest.uses_entrypoint:
-            checks.append(
-                ('hostApiVersion', manifest.compatibility.host_api_version, lambda: HOST_API_VERSION, 'hostApi')
-            )
         issues = []
         for field_name, constraint, version_loader, target_name in checks:
             if not constraint:

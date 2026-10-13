@@ -1,3 +1,6 @@
+<style lang="scss" scoped>
+</style>
+
 <template>
   <el-drawer
     title="用户信息详情"
@@ -6,18 +9,11 @@
     size="68%"
     append-to-body
     :before-close="handleClose"
-    custom-class="detail-drawer"
-  >
-    <div
-      v-loading="loading"
-      class="drawer-content"
-    >
+    custom-class="detail-drawer">
+    <div class="drawer-content" v-loading="loading">
       <!-- 基本信息 -->
       <h4 class="section-header">基本信息</h4>
-      <el-row
-        :gutter="20"
-        class="mb8"
-      >
+      <el-row class="mb8" :gutter="20">
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">用户名称：</label>
@@ -31,10 +27,7 @@
           </div>
         </el-col>
       </el-row>
-      <el-row
-        :gutter="20"
-        class="mb8"
-      >
+      <el-row class="mb8" :gutter="20">
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">手机号码：</label>
@@ -48,10 +41,7 @@
           </div>
         </el-col>
       </el-row>
-      <el-row
-        :gutter="20"
-        class="mb8"
-      >
+      <el-row class="mb8" :gutter="20">
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">登录账号：</label>
@@ -62,19 +52,12 @@
           <div class="info-item">
             <label class="info-label">用户状态：</label>
             <span class="info-value plaintext">
-              <el-tag
-                size="small"
-                :type="info.status === '0' ? 'success' : 'danger'"
-                >{{ info.status === '0' ? '正常' : '停用' }}</el-tag
-              >
+              <el-tag size="small" :type="info.status === '0' ? 'success' : 'danger'">{{ info.status === '0' ? '正常' : '停用' }}</el-tag>
             </span>
           </div>
         </el-col>
       </el-row>
-      <el-row
-        :gutter="20"
-        class="mb8"
-      >
+      <el-row class="mb8" :gutter="20">
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">岗位：</label>
@@ -88,10 +71,7 @@
           </div>
         </el-col>
       </el-row>
-      <el-row
-        :gutter="20"
-        class="mb8"
-      >
+      <el-row class="mb8" :gutter="20">
         <el-col :span="24">
           <div class="info-item full-width">
             <label class="info-label">角色：</label>
@@ -101,10 +81,7 @@
       </el-row>
       <!-- 其他信息 -->
       <h4 class="section-header">其他信息</h4>
-      <el-row
-        :gutter="20"
-        class="mb8"
-      >
+      <el-row class="mb8" :gutter="20">
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">创建者：</label>
@@ -118,10 +95,7 @@
           </div>
         </el-col>
       </el-row>
-      <el-row
-        :gutter="20"
-        class="mb8"
-      >
+      <el-row class="mb8" :gutter="20">
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">更新者：</label>
@@ -135,10 +109,7 @@
           </div>
         </el-col>
       </el-row>
-      <el-row
-        :gutter="20"
-        class="mb8"
-      >
+      <el-row class="mb8" :gutter="20">
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">最后登录IP：</label>
@@ -152,10 +123,7 @@
           </div>
         </el-col>
       </el-row>
-      <el-row
-        :gutter="20"
-        class="mb8"
-      >
+      <el-row class="mb8" :gutter="20">
         <el-col :span="24">
           <div class="info-item full-width">
             <label class="info-label">备注：</label>
@@ -168,12 +136,34 @@
 </template>
 
 <script>
+/**
+ * 组件名称：UserView
+ * 功能说明：用户信息详情抽屉，展示用户基本资料、部门、岗位、角色与登录信息
+ * 研发时间：2026/07/31
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import { getUser } from '@/api/system/user'
 
-export default {
+export default
+{
   name: 'UserViewDrawer',
   dicts: ['sys_user_sex'],
-  data() {
+
+  data()
+  {
     return {
       visible: false,
       loading: false,
@@ -182,11 +172,24 @@ export default {
       roleOptions: [],
     }
   },
-  computed: {
-    sexLabel() {
+
+  computed:
+  {
+    /**
+     * 用户性别显示文本
+     * @returns {String} 性别标签
+     */
+    sexLabel()
+    {
       return this.selectDictLabel(this.dict.type.sys_user_sex, this.info.sex) || '-'
     },
-    postNames() {
+
+    /**
+     * 岗位名称集合
+     * @returns {String} 岗位名称
+     */
+    postNames()
+    {
       if (!this.postOptions.length) return ''
       const ids = this.info.postIds || []
       return (
@@ -196,7 +199,13 @@ export default {
           .join('、') || ''
       )
     },
-    roleNames() {
+
+    /**
+     * 角色名称集合
+     * @returns {String} 角色名称
+     */
+    roleNames()
+    {
       if (!this.roleOptions.length) return ''
       const ids = this.info.roleIds || []
       return (
@@ -207,23 +216,37 @@ export default {
       )
     },
   },
-  methods: {
-    open(userId) {
+
+  methods:
+  {
+    /**
+     * 打开详情抽屉并加载用户信息
+     * @param {Number} userId - 用户ID
+     */
+    open(userId)
+    {
       this.visible = true
       this.loading = true
       getUser(userId)
-        .then((res) => {
+        .then((res) =>
+        {
           this.info = res.data || {}
           this.postOptions = res.posts || []
           this.roleOptions = res.roles || []
           this.info.postIds = res.postIds || []
           this.info.roleIds = res.roleIds || []
         })
-        .finally(() => {
+        .finally(() =>
+        {
           this.loading = false
         })
     },
-    handleClose() {
+
+    /**
+     * 关闭抽屉
+     */
+    handleClose()
+    {
       this.visible = false
     },
   },

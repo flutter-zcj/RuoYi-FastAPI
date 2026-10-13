@@ -1,22 +1,23 @@
+<style lang="scss" scoped>
+.error-flow { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-height: 370px; }
+.error-symbol { display: grid; place-items: center; width: 48px; height: 48px; background: var(--oauth-color-danger-light-9); border: 1px solid var(--oauth-color-danger-light-7); border-radius: 13px; color: var(--oauth-color-danger); font-size: 20px; }
+.panel-kicker { margin: 22px 0 8px; color: var(--oauth-color-danger); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; }
+h2 { margin: 0; color: var(--oauth-text-color-primary); font-size: 25px; font-weight: 650; line-height: 1.4; }
+.panel-lead { margin: 13px 0 20px; color: var(--oauth-text-color-regular); font-size: 14px; line-height: 1.75; }
+.next-steps { width: 100%; padding: 15px 17px; background: var(--oauth-fill-color-lighter); border-radius: 9px; }
+.next-steps strong { color: var(--oauth-text-color-primary); font-size: 13px; }
+.next-steps ol { margin: 9px 0 0; padding-left: 20px; color: var(--oauth-text-color-regular); font-size: 12px; line-height: 1.8; }
+.return-action { width: 100%; height: 44px; margin-top: 22px; }
+.close-help { width: 100%; margin: 20px 0 0; color: var(--oauth-text-color-secondary); font-size: 12px; text-align: center; }
+</style>
+
 <template>
   <AuthCenterShell :show-progress="false">
     <div class="error-flow">
-      <span
-        class="error-symbol"
-        aria-hidden="true"
-        ><i
-          class="el-icon el-icon-close"
-          aria-hidden="true"
-        ></i
-      ></span>
+      <span class="error-symbol" aria-hidden="true"><i class="el-icon el-icon-close" aria-hidden="true"></i></span>
       <p class="panel-kicker">{{ serviceUnavailable ? '服务不可用' : '认证未完成' }}</p>
       <h2>{{ errorTitle }}</h2>
-      <p
-        class="panel-lead"
-        role="alert"
-      >
-        {{ safeMessage }}
-      </p>
+      <p class="panel-lead" role="alert">{{ safeMessage }}</p>
 
       <div class="next-steps">
         <strong>你可以这样处理</strong>
@@ -31,18 +32,12 @@
       </div>
 
       <el-button
+        class="return-action"
         v-if="canGoBack"
         type="primary"
         size="medium"
-        class="return-action"
-        @click="returnBack"
-      >
-        返回上一页
-      </el-button>
-      <p
-        v-else
-        class="close-help"
-      >
+        @click="returnBack">返回上一页</el-button>
+      <p class="close-help" v-else>
         {{
           serviceUnavailable
             ? '可以安全关闭此页面，返回原应用。'
@@ -54,7 +49,37 @@
 </template>
 
 <script>
-export default { name: 'AuthCenterError' }
+/**
+ * 组件名称：AuthCenterError
+ * 功能说明：统一认证中心错误提示页面，展示认证失败原因并提供返回操作
+ * 研发时间：2026/10/01
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ * @data {Object}  route              - 当前路由对象
+ * @data {Object}  router             - 路由实例
+ * @data {Boolean} canGoBack          - 浏览器历史中是否存在上一页
+ * @data {String}  serviceReason      - 服务不可用原因
+ * @data {Boolean} serviceUnavailable - 认证服务是否不可用
+ * @data {String}  errorTitle         - 错误标题
+ * @data {String}  safeMessage        - 安全展示的错误信息
+ *
+ * 事件说明：
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/01     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
+export default
+{
+  name: 'AuthCenterError'
+}
 </script>
 
 <script setup>
@@ -83,87 +108,11 @@ const safeMessage = computed(() => {
   return message.slice(0, 240) || '认证请求可能已经过期、内容不完整，或应用的接入配置已经变更。'
 })
 
-/** 返回浏览器历史中的上一页 */
-function returnBack() {
+/**
+ * 返回浏览器历史中的上一页
+ */
+function returnBack()
+{
   router.back()
 }
 </script>
-
-<style scoped>
-.error-flow {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  min-height: 370px;
-}
-
-.error-symbol {
-  display: grid;
-  width: 48px;
-  height: 48px;
-  color: var(--oauth-color-danger);
-  background: var(--oauth-color-danger-light-9);
-  border: 1px solid var(--oauth-color-danger-light-7);
-  border-radius: 13px;
-  font-size: 20px;
-  place-items: center;
-}
-
-.panel-kicker {
-  margin: 22px 0 8px;
-  color: var(--oauth-color-danger);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-}
-
-h2 {
-  margin: 0;
-  color: var(--oauth-text-color-primary);
-  font-size: 25px;
-  font-weight: 650;
-  line-height: 1.4;
-}
-
-.panel-lead {
-  margin: 13px 0 20px;
-  color: var(--oauth-text-color-regular);
-  font-size: 14px;
-  line-height: 1.75;
-}
-
-.next-steps {
-  width: 100%;
-  padding: 15px 17px;
-  background: var(--oauth-fill-color-lighter);
-  border-radius: 9px;
-}
-
-.next-steps strong {
-  color: var(--oauth-text-color-primary);
-  font-size: 13px;
-}
-
-.next-steps ol {
-  margin: 9px 0 0;
-  padding-left: 20px;
-  color: var(--oauth-text-color-regular);
-  font-size: 12px;
-  line-height: 1.8;
-}
-
-.return-action {
-  width: 100%;
-  height: 44px;
-  margin-top: 22px;
-}
-
-.close-help {
-  width: 100%;
-  margin: 20px 0 0;
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-  text-align: center;
-}
-</style>

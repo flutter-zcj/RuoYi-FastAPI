@@ -1,3 +1,6 @@
+<style lang="scss" scoped>
+</style>
+
 <template>
   <div class="app-container">
     <file-search-form
@@ -6,15 +9,11 @@
       :show="showSearch"
       :dept-options="fileDeptOptions"
       @query="handleQuery"
-      @reset="resetQuery"
-    />
+      @reset="resetQuery" />
 
     <file-statistics :stats="fileStats" />
 
-    <el-row
-      :gutter="10"
-      class="mb8"
-    >
+    <el-row class="mb8" :gutter="10">
       <el-col :span="1.5">
         <el-button
           type="primary"
@@ -22,10 +21,8 @@
           size="mini"
           icon="el-icon-lock"
           :disabled="privateMultiple"
-          @click="handleAcl()"
           v-hasPermi="['system:file:edit']"
-          >授权</el-button
-        >
+          @click="handleAcl()">授权</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -34,10 +31,8 @@
           size="mini"
           icon="el-icon-sort"
           :disabled="activeMultiple"
-          @click="handleTransfer()"
           v-hasPermi="['system:file:transfer']"
-          >转移</el-button
-        >
+          @click="handleTransfer()">转移</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -46,10 +41,8 @@
           size="mini"
           icon="el-icon-refresh-left"
           :disabled="restoreMultiple"
-          @click="handleRestore()"
           v-hasPermi="['system:file:restore']"
-          >恢复</el-button
-        >
+          @click="handleRestore()">恢复</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -58,17 +51,14 @@
           size="mini"
           icon="el-icon-delete-solid"
           :disabled="purgeMultiple"
-          @click="handlePurge()"
           v-hasPermi="['system:file:purge']"
-          >清理</el-button
-        >
+          @click="handlePurge()">清理</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-tooltip
           :disabled="!selectedReferencedCount"
           content="所选文件存在业务引用，请先解除引用"
-          placement="top"
-        >
+          placement="top">
           <span>
             <el-button
               type="danger"
@@ -76,10 +66,8 @@
               size="mini"
               icon="el-icon-delete"
               :disabled="deleteMultiple"
-              @click="handleDelete()"
               v-hasPermi="['system:file:remove']"
-              >删除</el-button
-            >
+              @click="handleDelete()">删除</el-button>
           </span>
         </el-tooltip>
       </el-col>
@@ -89,10 +77,8 @@
           plain
           size="mini"
           icon="el-icon-timer"
-          @click="$refs.retentionPolicyDrawer.open()"
           v-hasPermi="['system:file:edit']"
-          >策略</el-button
-        >
+          @click="$refs.retentionPolicyDrawer.open()">策略</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -100,10 +86,8 @@
           plain
           size="mini"
           icon="el-icon-connection"
-          @click="$refs.reconcileDrawer.open()"
           v-hasPermi="['system:file:reconcile']"
-          >对账</el-button
-        >
+          @click="$refs.reconcileDrawer.open()">对账</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -111,15 +95,10 @@
           plain
           size="mini"
           icon="el-icon-bell"
-          @click="$refs.retentionReminderDrawer.open()"
           v-hasPermi="['system:file:list']"
-          >提醒</el-button
-        >
+          @click="$refs.retentionReminderDrawer.open()">提醒</el-button>
       </el-col>
-      <right-toolbar
-        :show-search.sync="showSearch"
-        @queryTable="getList"
-      />
+      <right-toolbar :show-search.sync="showSearch" @queryTable="getList" />
     </el-row>
 
     <file-table
@@ -134,41 +113,26 @@
       @audit="handleAudit"
       @delete="handleDelete"
       @restore="handleRestore"
-      @purge="handlePurge"
-    />
+      @purge="handlePurge" />
 
     <pagination
       v-show="total > 0"
       :total="total"
       :page.sync="queryParams.pageNum"
       :limit.sync="queryParams.pageSize"
-      @pagination="getList"
-    />
+      @pagination="getList" />
 
     <file-detail-dialog
       :open.sync="detailOpen"
       :detail="detail"
-      @reference="handleReference"
-    />
+      @reference="handleReference" />
     <file-reference-drawer ref="referenceDrawer" />
     <file-retention-policy-drawer ref="retentionPolicyDrawer" />
-    <file-retention-reminder-drawer
-      ref="retentionReminderDrawer"
-      @refresh="getList"
-    />
-    <file-acl-drawer
-      ref="aclDrawer"
-      @refresh="getList"
-    />
-    <file-transfer-dialog
-      ref="transferDialog"
-      @refresh="getList"
-    />
+    <file-retention-reminder-drawer ref="retentionReminderDrawer" @refresh="getList" />
+    <file-acl-drawer ref="aclDrawer" @refresh="getList" />
+    <file-transfer-dialog ref="transferDialog" @refresh="getList" />
     <file-audit-drawer ref="auditDrawer" />
-    <file-reconcile-drawer
-      ref="reconcileDrawer"
-      @refresh="getList"
-    />
+    <file-reconcile-drawer ref="reconcileDrawer" @refresh="getList" />
   </div>
 </template>
 
@@ -194,9 +158,32 @@ import FileStatistics from './components/FileStatistics.vue'
 import FileTable from './components/FileTable.vue'
 import FileTransferDialog from './components/FileTransferDialog.vue'
 
-export default {
+/**
+ * 组件名称：File
+ * 功能说明：文件管理页面，支持文件查询、下载、授权、转移、恢复、清理与保留策略配置
+ * 研发时间：2026/07/26
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/07/26     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
+export default
+{
   name: 'File',
-  components: {
+
+  components:
+  {
     FileAclDrawer,
     FileAuditDrawer,
     FileDetailDialog,
@@ -207,9 +194,11 @@ export default {
     FileSearchForm,
     FileStatistics,
     FileTable,
-    FileTransferDialog,
+    FileTransferDialog
   },
-  data() {
+
+  data()
+  {
     return {
       fileList: [],
       loading: true,
@@ -251,41 +240,65 @@ export default {
       },
     }
   },
-  created() {
+
+  created()
+  {
     this.getList()
-    getFileAclDeptTree().then((response) => {
+    getFileAclDeptTree().then((response) =>
+    {
       this.fileDeptOptions = response.data
     })
   },
-  methods: {
-    /** 查询文件列表 */
-    getList() {
+
+  methods:
+  {
+    /**
+     * 查询文件列表
+     */
+    getList()
+    {
       this.loading = true
       const query = this.addDateRange({ ...this.queryParams }, this.dateRange)
       listFile(query)
-        .then((response) => {
+        .then((response) =>
+        {
           this.fileList = response.rows
           this.total = response.total
         })
-        .finally(() => {
+        .finally(() =>
+        {
           this.loading = false
         })
-      getFileStats(query).then((response) => {
+      getFileStats(query).then((response) =>
+      {
         Object.assign(this.fileStats, response.data)
       })
     },
-    /** 搜索按钮操作 */
-    handleQuery() {
+
+    /**
+     * 搜索按钮操作
+     */
+    handleQuery()
+    {
       this.queryParams.pageNum = 1
       this.getList()
     },
-    /** 重置按钮操作 */
-    resetQuery() {
+
+    /**
+     * 重置按钮操作
+     */
+    resetQuery()
+    {
       this.queryParams.pageNum = 1
       this.getList()
     },
-    /** 多选框选中数据 */
-    handleSelectionChange(selection) {
+
+    /**
+     * 多选框选中数据
+     * @param {Array} selection - 选中的行数据
+     */
+    handleSelectionChange(selection)
+    {
       this.ids = selection.map((item) => item.fileId)
       this.privateIds = selection
         .filter((item) => item.status === 'active' && item.accessType === 'private')
@@ -299,42 +312,80 @@ export default {
       this.purgeMultiple =
         !selection.length || selection.some((item) => !['deleted', 'purging'].includes(item.status))
     },
-    /** 查看文件详情 */
-    handleView(row) {
-      getFile(row.fileId).then((response) => {
+
+    /**
+     * 查看文件详情
+     * @param {Object} row - 当前行数据
+     */
+    handleView(row)
+    {
+      getFile(row.fileId).then((response) =>
+      {
         this.detail = response.data
         this.detailOpen = true
       })
     },
-    /** 下载文件 */
-    handleDownload(row) {
+
+    /**
+     * 下载文件
+     * @param {Object} row - 当前行数据
+     */
+    handleDownload(row)
+    {
       const displayName = encodeURIComponent(row.storedName || 'file')
       this.$download.file(`/system/file/download/${row.fileId}/${displayName}`)
     },
-    /** 查看文件业务引用 */
-    handleReference(row) {
+
+    /**
+     * 查看文件业务引用
+     * @param {Object} row - 当前行数据
+     */
+    handleReference(row)
+    {
       this.$refs.referenceDrawer.open(row)
     },
-    /** 配置文件访问权限 */
-    handleAcl(row) {
+
+    /**
+     * 配置文件访问权限
+     * @param {Object} row - 当前行数据
+     */
+    handleAcl(row)
+    {
       this.$refs.aclDrawer.open(row, this.ids, this.privateIds)
     },
-    /** 转移文件 */
-    handleTransfer(row) {
+
+    /**
+     * 转移文件
+     * @param {Object} row - 当前行数据
+     */
+    handleTransfer(row)
+    {
       this.$refs.transferDialog.open(row, this.ids)
     },
-    /** 查看文件访问审计 */
-    handleAudit(row) {
+
+    /**
+     * 查看文件访问审计
+     * @param {Object} row - 当前行数据
+     */
+    handleAudit(row)
+    {
       this.$refs.auditDrawer.open(row)
     },
-    /** 删除文件 */
-    handleDelete(row) {
+
+    /**
+     * 删除文件
+     * @param {Object} row - 当前行数据
+     */
+    handleDelete(row)
+    {
       const isSingle = row && row.fileId
-      if (isSingle && row.referenceCount > 0) {
+      if (isSingle && row.referenceCount > 0)
+      {
         this.$modal.msgWarning('文件仍被业务引用，请先解除引用后再删除')
         return
       }
-      if (!isSingle && this.selectedReferencedCount > 0) {
+      if (!isSingle && this.selectedReferencedCount > 0)
+      {
         this.$modal.msgWarning('所选文件存在业务引用，请先解除引用后再删除')
         return
       }
@@ -343,40 +394,53 @@ export default {
       this.$modal
         .confirm(`是否确认将文件“${fileName}”移入回收站?`)
         .then(() => delFile(fileIds))
-        .then(() => {
+        .then(() =>
+        {
           this.getList()
           this.$modal.msgSuccess('文件已移入回收站')
         })
         .catch(() => {})
     },
-    /** 恢复文件 */
-    handleRestore(row) {
+
+    /**
+     * 恢复文件
+     * @param {Object} row - 当前行数据
+     */
+    handleRestore(row)
+    {
       const isSingle = row && row.fileId
       const fileIds = isSingle ? row.fileId : this.ids
       const fileName = isSingle ? row.originalName : `${this.ids.length}个文件`
       this.$modal
         .confirm(`是否确认恢复文件“${fileName}”?`)
         .then(() => restoreFile(fileIds))
-        .then(() => {
+        .then(() =>
+        {
           this.getList()
           this.$modal.msgSuccess('文件恢复成功')
         })
         .catch(() => {})
     },
-    /** 永久清理文件 */
-    handlePurge(row) {
+
+    /**
+     * 永久清理文件
+     * @param {Object} row - 当前行数据
+     */
+    handlePurge(row)
+    {
       const isSingle = row && row.fileId
       const fileIds = isSingle ? row.fileId : this.ids.join(',')
       const fileName = isSingle ? row.originalName : `${this.ids.length}个文件`
       this.$modal
         .confirm(`永久清理后无法恢复，是否确认清理文件“${fileName}”?`)
         .then(() => purgeFile(fileIds))
-        .then(() => {
+        .then(() =>
+        {
           this.getList()
           this.$modal.msgSuccess('文件已永久清理')
         })
         .catch(() => {})
-    },
-  },
+    }
+  }
 }
 </script>

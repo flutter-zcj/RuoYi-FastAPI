@@ -39,7 +39,6 @@ PLUGIN_MODEL_RUNTIME_FIELDS = {
     'config',
     'dependencies',
     'plugin_dependencies',
-    'release',
 }
 
 

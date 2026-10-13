@@ -1,28 +1,37 @@
-const { readdirSync } = require('node:fs')
-const { join, relative } = require('node:path')
-const { pathToFileURL } = require('node:url')
+const { readdirSync } = require('fs')
+const { join, relative } = require('path')
 
 const collectTestFiles = (root) => {
   const entries = readdirSync(root, { withFileTypes: true })
   const testFiles = []
+
   for (const entry of entries) {
     const entryPath = join(root, entry.name)
-    if (entry.isDirectory()) testFiles.push(...collectTestFiles(entryPath))
-    else if (entry.isFile() && /\.test\.(?:js|cjs|mjs)$/.test(entry.name)) testFiles.push(entryPath)
+    if (entry.isDirectory()) {
+      testFiles.push(...collectTestFiles(entryPath))
+      continue
+    }
+    if (entry.isFile() && entry.name.endsWith('.test.js')) {
+      testFiles.push(entryPath)
+    }
   }
+
   return testFiles.sort()
 }
 
-async function run() {
-  const testFiles = collectTestFiles(__dirname)
-  if (testFiles.length === 0) throw new Error('No plugin tests found')
+const testFiles = collectTestFiles(__dirname)
+
+if (testFiles.length === 0) {
+  console.error('No plugin tests found')
+  process.exitCode = 1
+} else {
   let failedCount = 0
+
   for (const testFile of testFiles) {
     const testName = relative(__dirname, testFile)
+
     try {
-      // 等待 ESM 顶层 await，同时兼容旧 CommonJS 测试导出的 Promise。
-      const loaded = await import(pathToFileURL(testFile).href)
-      await loaded.default
+      require(testFile)
       console.log(`ok ${testName}`)
     } catch (error) {
       failedCount += 1
@@ -30,11 +39,11 @@ async function run() {
       console.error(error && error.stack ? error.stack : error)
     }
   }
-  if (failedCount > 0) throw new Error(`Plugin tests failed: ${failedCount}/${testFiles.length}`)
-  console.log(`Plugin tests passed: ${testFiles.length}`)
-}
 
-run().catch((error) => {
-  console.error(error && error.stack ? error.stack : error)
-  process.exitCode = 1
-})
+  if (failedCount > 0) {
+    console.error(`Plugin tests failed: ${failedCount}/${testFiles.length}`)
+    process.exitCode = 1
+  } else {
+    console.log(`Plugin tests passed: ${testFiles.length}`)
+  }
+}

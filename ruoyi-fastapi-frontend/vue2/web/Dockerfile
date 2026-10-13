@@ -1,7 +1,6 @@
 # 构建阶段
 FROM node:18-slim AS builder
 ENV TZ=UTC
-ENV NODE_OPTIONS=--openssl-legacy-provider
 WORKDIR /app
 
 # 复制源代码
@@ -10,8 +9,8 @@ COPY . .
 # 设置npm镜像源
 RUN npm config set registry https://registry.npmmirror.com
 
-# 仓库不提交 npm 锁文件，Vue CLI 4 使用旧版 webpack 依赖。
-RUN npm install --legacy-peer-deps --no-package-lock
+# 安装依赖
+RUN npm ci --legacy-peer-deps
 
 # 执行docker构建命令
 RUN npm run build:docker

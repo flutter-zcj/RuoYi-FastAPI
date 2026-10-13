@@ -1,14 +1,31 @@
+<style lang="scss" scoped>
+.auth-flow { min-height: 390px; }
+.panel-kicker { margin: 0 0 8px; color: var(--oauth-color-primary); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; }
+h2 { margin: 0; color: var(--oauth-text-color-primary); font-size: 25px; font-weight: 650; line-height: 1.4; }
+.panel-lead { margin: 12px 0 24px; color: var(--oauth-text-color-regular); font-size: 13px; line-height: 1.7; }
+.panel-lead strong { color: var(--oauth-text-color-primary); }
+.el-alert { margin-bottom: 18px; }
+.captcha-row { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 10px; width: 100%; }
+.captcha-image { overflow: hidden; height: 40px; padding: 0; background: var(--oauth-fill-color-light); border: 1px solid var(--oauth-border-color); border-radius: var(--oauth-border-radius-base); color: var(--oauth-text-color-regular); }
+.captcha-image img { width: 100%; height: 100%; object-fit: cover; }
+.preference-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 2px; }
+.preference-row small { color: var(--oauth-text-color-secondary); font-size: 11px; }
+.primary-action { width: 100%; height: 44px; margin-top: 22px; }
+.cancel-action { display: block; margin: 14px auto 0; color: var(--oauth-text-color-regular); }
+@media (max-width: 440px) {
+  .captcha-row { grid-template-columns: minmax(0, 1fr) 112px; }
+  .preference-row { display: block; }
+  .preference-row small { display: block; margin: 2px 0 0 24px; }
+}
+</style>
+
 <template>
   <AuthCenterShell
     :current-step="0"
     :expires-in="interaction.expiresIn"
     :application-name="interaction.client?.clientName"
-    :application-id="interaction.client?.clientId"
-  >
-    <div
-      v-loading="initializing"
-      class="auth-flow"
-    >
+    :application-id="interaction.client?.clientId">
+    <div class="auth-flow" v-loading="initializing">
       <p class="panel-kicker">验证身份</p>
       <h2>使用你的账户继续</h2>
       <p class="panel-lead">
@@ -22,78 +39,54 @@
         :title="errorMessage"
         type="error"
         show-icon
-        :closable="false"
-      />
+        :closable="false"/>
       <el-form
         ref="loginRef"
         :model="form"
         :rules="rules"
         label-position="top"
-        @submit.native.prevent="submitLogin"
-      >
-        <el-form-item
-          label="账号"
-          prop="userName"
-        >
+        @submit.native.prevent="submitLogin">
+        <el-form-item label="账号" prop="userName">
           <el-input
             v-model="form.userName"
             size="medium"
             autocomplete="username"
             placeholder="请输入你的账号"
-            autofocus
-          >
-            <template #prefix
-              ><i
-                class="el-icon el-icon-user"
-                aria-hidden="true"
-              ></i
-            ></template>
+            autofocus>
+            <template #prefix><i class="el-icon el-icon-user" aria-hidden="true"></i></template>
           </el-input>
         </el-form-item>
-        <el-form-item
-          label="密码"
-          prop="password"
-        >
+        <el-form-item label="密码" prop="password">
           <el-input
             v-model="form.password"
             size="medium"
             type="password"
             show-password
             autocomplete="current-password"
-            placeholder="请输入登录密码"
-          >
-            <template #prefix
-              ><i
-                class="el-icon el-icon-lock"
-                aria-hidden="true"
-              ></i
-            ></template>
+            placeholder="请输入登录密码">
+            <template #prefix><i class="el-icon el-icon-lock" aria-hidden="true"></i></template>
           </el-input>
         </el-form-item>
         <el-form-item
           v-if="captcha.captchaEnabled"
           label="安全验证码"
-          prop="code"
-        >
+          prop="code">
           <div class="captcha-row">
             <el-input
               v-model="form.code"
               size="medium"
               autocomplete="off"
-              placeholder="输入图中字符"
-            />
+              placeholder="输入图中字符"/>
             <el-button
-              type="text"
               class="captcha-image"
+              type="text"
               aria-label="看不清，换一张验证码"
               title="看不清，换一张"
-              @click="loadCaptcha"
-            >
+              @click="loadCaptcha">
               <img
                 v-if="captcha.img"
                 :src="`data:image/gif;base64,${captcha.img}`"
-                alt="安全验证码"
-              />
+                alt="安全验证码"/>
               <span v-else>换一张</span>
             </el-button>
           </div>
@@ -108,24 +101,56 @@
           type="primary"
           size="medium"
           native-type="submit"
-          :loading="submitting"
-        >
-          登录并继续
-        </el-button>
+          :loading="submitting">登录并继续</el-button>
       </el-form>
       <el-button
-        type="text"
         class="cancel-action"
+        type="text"
         :disabled="submitting"
-        @click="cancel"
-        >取消并返回应用</el-button
-      >
+        @click="cancel">取消并返回应用</el-button>
     </div>
   </AuthCenterShell>
 </template>
 
 <script>
-export default { name: 'AuthCenterLogin' }
+/**
+ * 组件名称：AuthCenterLogin
+ * 功能说明：统一认证中心登录页面，校验账号密码与验证码并提交登录
+ * 研发时间：2026/10/01
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ * @data {String}   interactionId         - 认证交互标识
+ * @data {Function} csrfToken             - 获取 CSRF 令牌
+ * @data {Function} goToAction            - 跳转到指定认证动作
+ * @data {Function} followServerRedirect  - 跟随服务端重定向
+ * @data {Object}   router                - 路由实例
+ * @data {Object}   loginRef              - 登录表单引用
+ * @data {Boolean}  initializing          - 是否初始化中
+ * @data {Boolean}  submitting            - 是否提交中
+ * @data {String}   errorMessage          - 错误提示信息
+ * @data {Object}   interaction           - 认证交互数据
+ * @data {Object}   captcha               - 验证码数据
+ * @data {Object}   form                  - 登录表单数据
+ * @data {String}   applicationName       - 应用名称
+ * @data {Object}   rules                 - 表单校验规则
+ *
+ * 事件说明：
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/01     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
+export default
+{
+  name: 'AuthCenterLogin'
+}
 </script>
 
 <script setup>
@@ -169,8 +194,11 @@ const rules = {
   ],
 }
 
-/** 读取认证请求并初始化登录状态 */
-async function initialize() {
+/**
+ * 读取认证请求并初始化登录状态
+ */
+async function initialize()
+{
   if (!interactionId.value || !csrfToken()) {
     return showFatal('认证请求不完整，请返回应用重新登录')
   }
@@ -190,16 +218,22 @@ async function initialize() {
   }
 }
 
-/** 加载认证中心验证码 */
-async function loadCaptcha() {
+/**
+ * 加载认证中心验证码
+ */
+async function loadCaptcha()
+{
   const response = await getInteractionCaptcha(interactionId.value)
   captcha.value = response.data || { captchaEnabled: false }
   form.uuid = captcha.value.uuid || ''
   form.code = ''
 }
 
-/** 校验并提交登录凭据 */
-async function submitLogin() {
+/**
+ * 校验并提交登录凭据
+ */
+async function submitLogin()
+{
   if (!(await loginRef.value?.validate().catch(() => false))) {
     return
   }
@@ -224,8 +258,11 @@ async function submitLogin() {
   }
 }
 
-/** 取消当前认证请求 */
-async function cancel() {
+/**
+ * 取消当前认证请求
+ */
+async function cancel()
+{
   try {
     const response = await cancelInteraction(interactionId.value, csrfToken())
     if (response.data?.redirectUrl) {
@@ -236,109 +273,13 @@ async function cancel() {
   }
 }
 
-/** 跳转到认证错误页面 */
-function showFatal(message) {
+/**
+ * 跳转到认证错误页面
+ * @param {String} message - 错误提示信息
+ */
+function showFatal(message)
+{
   router.replace({ path: '/auth-center/error', query: { message } })
 }
 initialize()
 </script>
-
-<style scoped>
-.auth-flow {
-  min-height: 390px;
-}
-
-.panel-kicker {
-  margin: 0 0 8px;
-  color: var(--oauth-color-primary);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-}
-
-h2 {
-  margin: 0;
-  color: var(--oauth-text-color-primary);
-  font-size: 25px;
-  font-weight: 650;
-  line-height: 1.4;
-}
-
-.panel-lead {
-  margin: 12px 0 24px;
-  color: var(--oauth-text-color-regular);
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.panel-lead strong {
-  color: var(--oauth-text-color-primary);
-}
-
-.el-alert {
-  margin-bottom: 18px;
-}
-
-.captcha-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 132px;
-  gap: 10px;
-  width: 100%;
-}
-
-.captcha-image {
-  height: 40px;
-  padding: 0;
-  overflow: hidden;
-  color: var(--oauth-text-color-regular);
-  background: var(--oauth-fill-color-light);
-  border: 1px solid var(--oauth-border-color);
-  border-radius: var(--oauth-border-radius-base);
-}
-
-.captcha-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.preference-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 2px;
-}
-
-.preference-row small {
-  color: var(--oauth-text-color-secondary);
-  font-size: 11px;
-}
-
-.primary-action {
-  width: 100%;
-  height: 44px;
-  margin-top: 22px;
-}
-
-.cancel-action {
-  display: block;
-  margin: 14px auto 0;
-  color: var(--oauth-text-color-regular);
-}
-
-@media (max-width: 440px) {
-  .captcha-row {
-    grid-template-columns: minmax(0, 1fr) 112px;
-  }
-
-  .preference-row {
-    display: block;
-  }
-
-  .preference-row small {
-    display: block;
-    margin: 2px 0 0 24px;
-  }
-}
-</style>

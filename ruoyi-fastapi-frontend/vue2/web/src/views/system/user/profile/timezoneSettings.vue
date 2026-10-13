@@ -1,13 +1,11 @@
+<style lang="scss" scoped>
+.timezone-help { color: #909399; font-size: 12px; line-height: 1.6; }
+</style>
+
 <template>
-  <el-form
-    label-width="100px"
-    @submit.native.prevent="save"
-  >
+  <el-form label-width="100px" @submit.native.prevent="save">
     <el-form-item label="时间显示方式">
-      <el-radio-group
-        v-model="mode"
-        :disabled="saving"
-      >
+      <el-radio-group v-model="mode" :disabled="saving">
         <el-radio label="auto">自动跟随设备</el-radio>
         <el-radio label="custom">手动选择</el-radio>
       </el-radio-group>
@@ -15,8 +13,7 @@
     <el-form-item
       v-if="mode === 'custom'"
       label="显示时区"
-      :error="fieldError"
-    >
+      :error="fieldError">
       <el-select
         v-model="selectedZone"
         filterable
@@ -25,30 +22,23 @@
         placeholder="搜索时区，例如 Asia/Shanghai"
         aria-label="显示时区"
         style="width: 100%"
-        @change="fieldError = ''"
-      >
+        @change="fieldError = ''">
         <el-option
           v-for="zone in timezones"
           :key="zone"
           :label="zone"
-          :value="zone"
-        />
+          :value="zone"/>
       </el-select>
     </el-form-item>
     <el-form-item v-if="loadError">
-      <el-alert
-        type="warning"
-        :closable="false"
-      >
+      <el-alert type="warning" :closable="false">
         <span slot="title">
           时区列表加载失败，仍可使用当前时区。
           <el-button
             type="text"
             size="mini"
             :loading="loading"
-            @click="loadOptions"
-            >重试</el-button
-          >
+            @click="loadOptions">重试</el-button>
         </span>
       </el-alert>
     </el-form-item>
@@ -57,10 +47,7 @@
     </el-form-item>
     <el-form-item label="时间预览">
       <span aria-live="polite">{{ previewTime }}</span>
-      <div
-        v-if="mode === 'auto' && !deviceZone"
-        class="timezone-help"
-      >
+      <div class="timezone-help" v-if="mode === 'auto' && !deviceZone">
         当前设备无法识别时区，已使用系统时区；你也可以手动选择。
       </div>
       <div class="timezone-help">
@@ -72,20 +59,37 @@
         type="primary"
         size="mini"
         native-type="submit"
-        :loading="saving"
-        >保存</el-button
-      >
+        :loading="saving">保存</el-button>
       <el-button
         type="danger"
         size="mini"
-        @click="close"
-        >关闭</el-button
-      >
+        @click="close">关闭</el-button>
     </el-form-item>
   </el-form>
 </template>
 
 <script>
+/**
+ * 组件名称：TimezoneSettings
+ * 功能说明：个人中心时区设置，支持跟随设备或手动选择显示时区
+ * 研发时间：2026/09/12
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ * @prop {Object} user - 用户信息对象
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ * @event saved - 时区保存成功后抛出
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import { getTimezoneOptions, updateUserTimezone } from '@/api/system/user'
 import {
   formatBusinessTime,
@@ -94,12 +98,18 @@ import {
   getDisplayTimezone,
   getSupportedTimezones,
 } from '@/utils/time'
-export default {
+
+export default
+{
   name: 'TimezoneSettings',
-  props: {
-    user: Object,
+
+  props:
+  {
+    user: Object
   },
-  data() {
+
+  data()
+  {
     return {
       mode: this.$store.state.user.timeZone === 'auto' ? 'auto' : 'custom',
       selectedZone: getDisplayTimezone(),
@@ -112,81 +122,130 @@ export default {
       now: new Date(),
     }
   },
-  computed: {
-    deviceZone() {
+
+  computed:
+  {
+    /**
+     * 当前设备时区
+     * @returns {String} 设备时区
+     */
+    deviceZone()
+    {
       return getDeviceTimezone()
     },
-    previewZone() {
+
+    /**
+     * 预览时区
+     * @returns {String} 预览时区
+     */
+    previewZone()
+    {
       return this.mode === 'auto' ? this.deviceZone || getBusinessTimezone() : this.selectedZone
     },
-    previewTime() {
+
+    /**
+     * 预览时间
+     * @returns {String} 格式化后的预览时间
+     */
+    previewTime()
+    {
       return formatBusinessTime(this.now, 'YYYY-MM-DD HH:mm:ss', this.previewZone)
     },
-    userTimezone() {
+
+    /**
+     * 用户配置的时区
+     * @returns {String} 用户时区
+     */
+    userTimezone()
+    {
       return this.user?.timeZone
     },
   },
-  watch: {
-    userTimezone(value) {
-      if (!value) {
+
+  watch:
+  {
+    /**
+     * 监听用户时区变化并同步表单
+     * @param {String} value - 用户时区
+     */
+    userTimezone(value)
+    {
+      if (!value)
+      {
         return
       }
       this.mode = value === 'auto' ? 'auto' : 'custom'
       this.selectedZone = value === 'auto' ? getDisplayTimezone() : value
     },
   },
-  mounted() {
+
+  mounted()
+  {
     this.loadOptions()
   },
-  methods: {
-    close() {
+
+  methods:
+  {
+    /**
+     * 关闭当前页签
+     */
+    close()
+    {
       this.$tab.closePage()
     },
-    /** 加载当前浏览器支持的时区选项。 */
-    async loadOptions() {
+
+    /**
+     * 加载当前浏览器支持的时区选项。
+     */
+    async loadOptions()
+    {
       this.loading = true
       this.loadError = false
-      try {
+      try
+      {
         const response = await getTimezoneOptions()
         this.timezones = getSupportedTimezones(response.data)
-      } catch {
+      } catch
+      {
         this.loadError = true
-      } finally {
+      } finally
+      {
         this.loading = false
       }
     },
-    /** 保存账号时区，并同步当前页面展示。 */
-    async save() {
-      if (this.saving) {
+
+    /**
+     * 保存账号时区，并同步当前页面展示。
+     */
+    async save()
+    {
+      if (this.saving)
+      {
         return
       }
-      if (this.mode === 'custom' && !this.selectedZone) {
+      if (this.mode === 'custom' && !this.selectedZone)
+      {
         this.fieldError = '请选择显示时区'
         return
       }
       this.saving = true
       this.saveError = ''
       const preference = this.mode === 'auto' ? 'auto' : this.selectedZone
-      try {
+      try
+      {
         await updateUserTimezone(preference)
         this.$store.dispatch('ApplyTimezone', preference)
         this.$emit('saved', preference)
         this.now = new Date()
         this.$modal.msgSuccess('时区设置已保存')
-      } catch (error) {
+      } catch (error)
+      {
         this.saveError = error.message || '保存失败，请重试'
-      } finally {
+      } finally
+      {
         this.saving = false
       }
     },
   },
 }
 </script>
-
-<style scoped>
-.timezone-help {
-  color: #909399;
-  font-size: 12px;
-  line-height: 1.6;
-}
-</style>

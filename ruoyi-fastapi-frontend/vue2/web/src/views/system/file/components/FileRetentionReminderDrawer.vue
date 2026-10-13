@@ -1,75 +1,53 @@
+<style lang="scss" scoped>
+.drawer-content { padding: 0 20px 20px; }
+.danger-action { color: #f56c6c; }
+</style>
+
 <template>
   <el-drawer
     title="文件保留期限提醒"
     :visible.sync="visible"
     size="70%"
-    append-to-body
-  >
+    append-to-body>
     <div class="drawer-content">
       <el-alert
+        class="mb8"
         title="到期前可延长保留期限；到期后仅在全部业务引用均已到期时才可移入回收站，处置会解除这些业务引用。"
         type="info"
         :closable="false"
-        show-icon
-        class="mb8"
-      />
+        show-icon />
       <el-form
         ref="queryForm"
         :model="queryParams"
         size="small"
         :inline="true"
-        label-width="68px"
-      >
-        <el-form-item
-          label="文件名称"
-          prop="originalName"
-        >
+        label-width="68px">
+        <el-form-item label="文件名称" prop="originalName">
           <el-input
             v-model="queryParams.originalName"
             placeholder="请输入原始文件名"
             clearable
             style="width: 200px"
-            @keyup.enter.native="handleQuery"
-          />
+            @keyup.enter.native="handleQuery" />
         </el-form-item>
-        <el-form-item
-          label="提醒类型"
-          prop="noticeType"
-        >
+        <el-form-item label="提醒类型" prop="noticeType">
           <el-select
             v-model="queryParams.noticeType"
             placeholder="请选择提醒类型"
             clearable
-            style="width: 200px"
-          >
-            <el-option
-              label="即将到期"
-              value="expiring"
-            />
-            <el-option
-              label="已到期"
-              value="expired"
-            />
+            style="width: 200px">
+            <el-option label="即将到期" value="expiring" />
+            <el-option label="已到期" value="expired" />
           </el-select>
         </el-form-item>
-        <el-form-item
-          label="提醒状态"
-          prop="status"
-        >
+        <el-form-item label="提醒状态" prop="status">
           <el-select
             v-model="queryParams.status"
             placeholder="请选择提醒状态"
             clearable
-            style="width: 200px"
-          >
-            <el-option
-              label="未读"
-              value="0"
-            />
-            <el-option
-              label="已读"
-              value="1"
-            />
+            style="width: 200px">
+            <el-option label="未读" value="0" />
+            <el-option label="已读" value="1" />
           </el-select>
         </el-form-item>
         <el-form-item label-width="0">
@@ -77,21 +55,14 @@
             type="primary"
             icon="el-icon-search"
             size="mini"
-            @click="handleQuery"
-            >搜索</el-button
-          >
+            @click="handleQuery">搜索</el-button>
           <el-button
             icon="el-icon-refresh"
             size="mini"
-            @click="resetQuery"
-            >重置</el-button
-          >
+            @click="resetQuery">重置</el-button>
         </el-form-item>
       </el-form>
-      <el-row
-        :gutter="10"
-        class="mb8"
-      >
+      <el-row class="mb8" :gutter="10">
         <el-col :span="1.5">
           <el-button
             type="primary"
@@ -99,10 +70,8 @@
             size="mini"
             icon="el-icon-refresh"
             :loading="scanning"
-            @click="handleScan"
             v-hasPermi="['system:file:edit']"
-            >扫描</el-button
-          >
+            @click="handleScan">扫描</el-button>
         </el-col>
         <el-col :span="1.5">
           <el-button
@@ -111,36 +80,30 @@
             size="mini"
             icon="el-icon-check"
             :disabled="!ids.length"
-            @click="handleRead"
-            >已读</el-button
-          >
+            @click="handleRead">已读</el-button>
         </el-col>
       </el-row>
       <el-table
         v-loading="loading"
         :data="reminderList"
-        @selection-change="handleSelectionChange"
-      >
+        @selection-change="handleSelectionChange">
         <el-table-column
           type="selection"
           width="50"
           align="center"
-          :selectable="selectable"
-        />
+          :selectable="selectable" />
         <el-table-column
           label="文件名称"
           align="left"
           prop="originalName"
           min-width="180"
-          :show-overflow-tooltip="true"
-        />
+          :show-overflow-tooltip="true" />
         <el-table-column
           label="所有者"
           align="center"
           prop="ownerName"
           width="120"
-          :show-overflow-tooltip="true"
-        >
+          :show-overflow-tooltip="true">
           <template slot-scope="scope">{{ scope.row.ownerName || '-' }}</template>
         </el-table-column>
         <el-table-column
@@ -148,16 +111,14 @@
           align="center"
           prop="deptName"
           width="140"
-          :show-overflow-tooltip="true"
-        >
+          :show-overflow-tooltip="true">
           <template slot-scope="scope">{{ scope.row.deptName || '-' }}</template>
         </el-table-column>
         <el-table-column
           label="提醒类型"
           align="center"
           prop="noticeType"
-          width="110"
-        >
+          width="110">
           <template slot-scope="scope">
             <el-tag :type="scope.row.noticeType === 'expired' ? 'danger' : 'warning'">
               {{ scope.row.noticeType === 'expired' ? '已到期' : '即将到期' }}
@@ -168,16 +129,14 @@
           label="到期时间"
           align="center"
           prop="expireTime"
-          width="180"
-        >
+          width="180">
           <template slot-scope="scope">{{ parseTime(scope.row.expireTime) }}</template>
         </el-table-column>
         <el-table-column
           label="状态"
           align="center"
           prop="status"
-          width="90"
-        >
+          width="90">
           <template slot-scope="scope">
             <el-tag :type="scope.row.status === '0' ? 'warning' : 'success'">
               {{ scope.row.status === '0' ? '未读' : '已读' }}
@@ -188,14 +147,12 @@
           label="业务引用"
           align="center"
           prop="referenceCount"
-          width="90"
-        />
+          width="90" />
         <el-table-column
           label="提醒时间"
           align="center"
           prop="createTime"
-          width="180"
-        >
+          width="180">
           <template slot-scope="scope">{{ parseTime(scope.row.createTime) }}</template>
         </el-table-column>
         <el-table-column
@@ -203,44 +160,36 @@
           align="center"
           prop="readBy"
           width="110"
-          :show-overflow-tooltip="true"
-        >
+          :show-overflow-tooltip="true">
           <template slot-scope="scope">{{ scope.row.readBy || '-' }}</template>
         </el-table-column>
         <el-table-column
           label="操作"
           align="center"
           width="100"
-          fixed="right"
-        >
+          fixed="right">
           <template slot-scope="scope">
-            <el-tooltip
-              content="延长保留期限"
-              placement="top"
-            >
+            <el-tooltip content="延长保留期限" placement="top">
               <el-button
                 type="text"
                 icon="el-icon-time"
-                @click="handleExtend(scope.row)"
                 v-hasPermi="['system:file:edit']"
-              />
+                @click="handleExtend(scope.row)" />
             </el-tooltip>
             <el-tooltip
               v-if="isExpired(scope.row)"
               :content="
                 scope.row.canDispose ? '移入回收站' : '存在永久或尚未到期的业务引用，暂不可处置'
               "
-              placement="top"
-            >
+              placement="top">
               <span>
                 <el-button
-                  type="text"
                   class="danger-action"
+                  type="text"
                   icon="el-icon-delete"
                   :disabled="!scope.row.canDispose"
-                  @click="handleDispose(scope.row)"
                   v-hasPermi="['system:file:remove']"
-                />
+                  @click="handleDispose(scope.row)" />
               </span>
             </el-tooltip>
           </template>
@@ -251,62 +200,46 @@
         :total="total"
         :page.sync="queryParams.pageNum"
         :limit.sync="queryParams.pageSize"
-        @pagination="getList"
-      />
+        @pagination="getList" />
     </div>
 
     <el-dialog
       title="延长文件保留期限"
       :visible.sync="extendOpen"
       width="520px"
-      append-to-body
-    >
+      append-to-body>
       <el-form
         ref="extendForm"
         :model="extendForm"
         :rules="extendRules"
-        label-width="92px"
-      >
+        label-width="92px">
         <el-form-item label="文件名称">
           <span>{{ currentRow.originalName }}</span>
         </el-form-item>
         <el-form-item label="原到期时间">
           <span>{{ parseTime(currentRow.expireTime) }}</span>
         </el-form-item>
-        <el-form-item
-          label="新到期时间"
-          prop="expireTime"
-        >
+        <el-form-item label="新到期时间" prop="expireTime">
           <BusinessDateTimePicker
             v-model="extendForm.expireTime"
             label="新到期时间"
-            style="width: 100%"
-          />
+            style="width: 100%" />
         </el-form-item>
-        <el-form-item
-          label="延期原因"
-          prop="reason"
-        >
+        <el-form-item label="延期原因" prop="reason">
           <el-input
             v-model="extendForm.reason"
             type="textarea"
             :rows="3"
             maxlength="500"
             show-word-limit
-            placeholder="请输入延期原因"
-          />
+            placeholder="请输入延期原因" />
         </el-form-item>
       </el-form>
-      <div
-        slot="footer"
-        class="dialog-footer"
-      >
+      <div class="dialog-footer" slot="footer">
         <el-button
           type="primary"
           :loading="submitting"
-          @click="submitExtend"
-          >确 定</el-button
-        >
+          @click="submitExtend">确 定</el-button>
         <el-button @click="extendOpen = false">取 消</el-button>
       </div>
     </el-dialog>
@@ -324,10 +257,38 @@ import {
   scanFileRetentionReminder,
 } from '@/api/system/file'
 
-export default {
+/**
+ * 组件名称：FileRetentionReminderDrawer
+ * 功能说明：文件保留期限提醒抽屉组件，支持提醒扫描、已读标记、期限延长与到期文件处置
+ * 研发时间：2026/07/26
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ * @event refresh - 数据变更后刷新列表
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/07/26     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
+export default
+{
   name: 'FileRetentionReminderDrawer',
-  components: { BusinessDateTimePicker },
-  data() {
+
+  components:
+  {
+    BusinessDateTimePicker
+  },
+
+  data()
+  {
     return {
       visible: false,
       loading: false,
@@ -355,36 +316,65 @@ export default {
       },
     }
   },
-  methods: {
-    open() {
+
+  methods:
+  {
+    /**
+     * 打开抽屉
+     */
+    open()
+    {
       this.visible = true
       this.queryParams.pageNum = 1
       this.getList()
     },
-    getList() {
+
+    /**
+     * 查询提醒列表
+     */
+    getList()
+    {
       this.loading = true
       listFileRetentionReminder(this.queryParams)
-        .then((response) => {
+        .then((response) =>
+        {
           this.reminderList = response.rows
           this.total = response.total
         })
-        .finally(() => {
+        .finally(() =>
+        {
           this.loading = false
         })
     },
-    handleQuery() {
+
+    /**
+     * 搜索按钮操作
+     */
+    handleQuery()
+    {
       this.queryParams.pageNum = 1
       this.getList()
     },
-    resetQuery() {
+
+    /**
+     * 重置按钮操作
+     */
+    resetQuery()
+    {
       this.$refs.queryForm.resetFields()
       this.queryParams.pageNum = 1
       this.getList()
     },
-    handleScan() {
+
+    /**
+     * 扫描保留提醒
+     */
+    handleScan()
+    {
       this.scanning = true
       scanFileRetentionReminder()
-        .then((response) => {
+        .then((response) =>
+        {
           const { expiringCount, expiredCount } = response.data
           this.$modal.msgSuccess(
             `扫描完成，新增即将到期${expiringCount}条、已到期${expiredCount}条提醒`
@@ -392,26 +382,59 @@ export default {
           this.getList()
           this.$emit('refresh')
         })
-        .finally(() => {
+        .finally(() =>
+        {
           this.scanning = false
         })
     },
-    selectable(row) {
+
+    /**
+     * 判断当前行是否可勾选
+     * @param {Object} row - 当前行数据
+     * @returns {Boolean} 是否可勾选
+     */
+    selectable(row)
+    {
       return row.status === '0'
     },
-    handleSelectionChange(selection) {
+
+    /**
+     * 多选框选中数据
+     * @param {Array} selection - 选中的行数据
+     */
+    handleSelectionChange(selection)
+    {
       this.ids = selection.map((item) => item.noticeId)
     },
-    handleRead() {
-      readFileRetentionReminder(this.ids.join(',')).then(() => {
+
+    /**
+     * 标记提醒为已读
+     */
+    handleRead()
+    {
+      readFileRetentionReminder(this.ids.join(',')).then(() =>
+      {
         this.$modal.msgSuccess('提醒已标记为已读')
         this.getList()
       })
     },
-    isExpired(row) {
+
+    /**
+     * 判断提醒是否已到期
+     * @param {Object} row - 当前行数据
+     * @returns {Boolean} 是否已到期
+     */
+    isExpired(row)
+    {
       return new Date(row.expireTime).getTime() <= Date.now()
     },
-    handleExtend(row) {
+
+    /**
+     * 打开延长保留期限弹窗
+     * @param {Object} row - 当前行数据
+     */
+    handleExtend(row)
+    {
       this.currentRow = row
       this.extendForm = {
         expireTime: this.defaultExtendTime(row.expireTime),
@@ -420,25 +443,39 @@ export default {
       this.extendOpen = true
       this.$nextTick(() => this.$refs.extendForm.clearValidate())
     },
-    submitExtend() {
-      this.$refs.extendForm.validate(async (valid) => {
+
+    /**
+     * 提交延长保留期限
+     */
+    submitExtend()
+    {
+      this.$refs.extendForm.validate(async (valid) =>
+      {
         if (!valid) return
         const submitData = await serializeTimeFieldsForSubmit(this.extendForm, ['expireTime'])
         if (!submitData) return
         this.submitting = true
         extendFileRetention(this.currentRow.noticeId, submitData)
-          .then(() => {
+          .then(() =>
+          {
             this.$modal.msgSuccess('文件保留期限已延长')
             this.extendOpen = false
             this.getList()
             this.$emit('refresh')
           })
-          .finally(() => {
+          .finally(() =>
+          {
             this.submitting = false
           })
       })
     },
-    handleDispose(row) {
+
+    /**
+     * 处置到期文件
+     * @param {Object} row - 当前行数据
+     */
+    handleDispose(row)
+    {
       this.$prompt(
         `处置后“${row.originalName}”将移入回收站，并解除${row.referenceCount || 0}条已到期业务引用。请输入处置原因：`,
         '到期文件处置',
@@ -448,7 +485,8 @@ export default {
           closeOnClickModal: false,
           inputType: 'textarea',
           inputPlaceholder: '请输入处置原因',
-          inputValidator: (value) => {
+          inputValidator: (value) =>
+          {
             const reason = value && value.trim()
             if (!reason) return '处置原因不能为空'
             if (reason.length > 500) return '处置原因不能超过500个字符'
@@ -456,8 +494,10 @@ export default {
           },
         }
       )
-        .then(({ value }) => {
-          disposeExpiredFile(row.noticeId, { reason: value.trim() }).then(() => {
+        .then(({ value }) =>
+        {
+          disposeExpiredFile(row.noticeId, { reason: value.trim() }).then(() =>
+          {
             this.$modal.msgSuccess('到期文件已移入回收站')
             this.getList()
             this.$emit('refresh')
@@ -465,21 +505,18 @@ export default {
         })
         .catch(() => {})
     },
-    defaultExtendTime(expireTime) {
+
+    /**
+     * 计算默认延长到期时间
+     * @param {String} expireTime - 原到期时间
+     * @returns {String} 默认新到期时间
+     */
+    defaultExtendTime(expireTime)
+    {
       const baseTime = Math.max(Date.now(), new Date(expireTime).getTime())
       const target = new Date(baseTime + 30 * 24 * 60 * 60 * 1000)
       return toBusinessDateTimeInput(target)
-    },
-  },
+    }
+  }
 }
 </script>
-
-<style scoped>
-.drawer-content {
-  padding: 0 20px 20px;
-}
-
-.danger-action {
-  color: #f56c6c;
-}
-</style>

@@ -1,3 +1,23 @@
+<style lang="scss" scoped>
+.notice-trigger {
+  position: relative; transform: translateX(-6px);
+  .svg-icon { width: 1.2em; height: 1.2em; vertical-align: -0.2em; }
+  .notice-badge { position: absolute; top: 7px; right: -3px; background: #f56c6c; color: #fff; border-radius: 10px; font-size: 10px; height: 16px; line-height: 16px; padding: 0 4px; min-width: 16px; text-align: center; white-space: nowrap; pointer-events: none; }
+}
+.notice-popover { padding: 0 !important; }
+.notice-popover .notice-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #f7f9fb; border-bottom: 1px solid #eee; font-size: 13px; font-weight: 600; color: #333; }
+.notice-popover .notice-mark-all { font-size: 12px; color: #409eff; font-weight: normal; cursor: pointer; }
+.notice-popover .notice-mark-all:hover { color: #2b7cc1; }
+.notice-popover .notice-loading, .notice-popover .notice-empty { padding: 24px; text-align: center; color: #bbb; font-size: 12px; line-height: 1.8; }
+.notice-popover .notice-item { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.15s; }
+.notice-popover .notice-item:last-child { border-bottom: none; }
+.notice-popover .notice-item:hover { background: #f7f9fb; }
+.notice-popover .notice-item.is-read .notice-tag, .notice-popover .notice-item.is-read .notice-item-title, .notice-popover .notice-item.is-read .notice-item-date { opacity: 0.45; filter: grayscale(1); color: #999; }
+.notice-popover .notice-tag { flex-shrink: 0; }
+.notice-popover .notice-item-title { flex: 1; font-size: 12px; color: #333; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.notice-popover .notice-item-date { flex-shrink: 0; font-size: 11px; color: #bbb; }
+</style>
+
 <template>
   <div>
     <el-popover
@@ -6,26 +26,15 @@
       width="320"
       trigger="manual"
       :value="noticeVisible"
-      popper-class="notice-popover"
-    >
+      popper-class="notice-popover">
       <div class="notice-header">
         <span class="notice-title">通知公告</span>
-        <span
-          class="notice-mark-all"
-          @click="markAllRead"
-          >全部已读</span
-        >
+        <span class="notice-mark-all" @click="markAllRead">全部已读</span>
       </div>
-      <div
-        v-if="noticeLoading"
-        class="notice-loading"
-      >
+      <div class="notice-loading" v-if="noticeLoading">
         <i class="el-icon-loading"></i> 加载中...
       </div>
-      <div
-        v-else-if="noticeList.length === 0"
-        class="notice-empty"
-      >
+      <div class="notice-empty" v-else-if="noticeList.length === 0">
         <i class="el-icon-inbox"></i><br />暂无公告
       </div>
       <div v-else>
@@ -34,13 +43,11 @@
           :key="item.noticeId"
           class="notice-item"
           :class="{ 'is-read': item.isRead }"
-          @click="previewNotice(item)"
-        >
+          @click="previewNotice(item)">
           <el-tag
-            size="mini"
-            :type="item.noticeType === '1' ? 'warning' : 'success'"
             class="notice-tag"
-          >
+            size="mini"
+            :type="item.noticeType === '1' ? 'warning' : 'success'">
             {{ item.noticeType === '1' ? '通知' : '公告' }}
           </el-tag>
           <span class="notice-item-title">{{ item.noticeTitle }}</span>
@@ -50,17 +57,12 @@
     </el-popover>
 
     <div
-      v-popover:noticePopover
       class="right-menu-item hover-effect notice-trigger"
+      v-popover:noticePopover
       @mouseenter="onNoticeEnter"
-      @mouseleave="onNoticeLeave"
-    >
+      @mouseleave="onNoticeLeave">
       <svg-icon icon-class="bell" />
-      <span
-        v-if="unreadCount > 0"
-        class="notice-badge"
-        >{{ unreadCount }}</span
-      >
+      <span class="notice-badge" v-if="unreadCount > 0">{{ unreadCount }}</span>
     </div>
 
     <notice-detail-view ref="noticeViewRef" />
@@ -68,13 +70,37 @@
 </template>
 
 <script>
+/**
+ * 组件名称：HeaderNotice
+ * 功能说明：顶部消息通知组件，展示顶部公告列表并支持预览与全部已读
+ * 研发时间：2026/07/31
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/07/31     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import NoticeDetailView from './DetailView'
 import { listNoticeTop, markNoticeRead, markNoticeReadAll } from '@/api/system/notice'
 
-export default {
+export default
+{
   name: 'HeaderNotice',
+
   components: { NoticeDetailView },
-  data() {
+
+  data()
+  {
     return {
       noticeList: [], // 通知列表
       unreadCount: 0, // 未读数量
@@ -83,12 +109,19 @@ export default {
       noticeLeaveTimer: null, // 鼠标离开计时器
     }
   },
-  mounted() {
+
+  mounted()
+  {
     this.loadNoticeTop()
   },
-  methods: {
-    // 鼠标移入铃铛区域
-    onNoticeEnter() {
+
+  methods:
+  {
+    /**
+     * 鼠标移入铃铛区域
+     */
+    onNoticeEnter()
+    {
       clearTimeout(this.noticeLeaveTimer)
       this.noticeVisible = true
       this.$nextTick(() => {
@@ -104,14 +137,22 @@ export default {
         }
       })
     },
-    // 鼠标离开铃铛区域
-    onNoticeLeave() {
+
+    /**
+     * 鼠标离开铃铛区域
+     */
+    onNoticeLeave()
+    {
       this.noticeLeaveTimer = setTimeout(() => {
         this.noticeVisible = false
       }, 150)
     },
-    // 加载顶部公告列表
-    loadNoticeTop() {
+
+    /**
+     * 加载顶部公告列表
+     */
+    loadNoticeTop()
+    {
       this.noticeLoading = true
       listNoticeTop()
         .then((res) => {
@@ -125,8 +166,13 @@ export default {
           this.noticeLoading = false
         })
     },
-    // 预览公告详情
-    previewNotice(item) {
+
+    /**
+     * 预览公告详情
+     * @param {Object} item - 公告项
+     */
+    previewNotice(item)
+    {
       if (!item.isRead) {
         markNoticeRead(item.noticeId).catch(() => {})
         item.isRead = true
@@ -136,8 +182,12 @@ export default {
       }
       this.$refs.noticeViewRef.open(item.noticeId)
     },
-    // 全部已读
-    markAllRead() {
+
+    /**
+     * 全部标记为已读
+     */
+    markAllRead()
+    {
       const ids = this.noticeList.map((n) => n.noticeId).join(',')
       if (!ids) return
       markNoticeReadAll(ids).catch(() => {})
@@ -147,100 +197,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss" scoped>
-.notice-trigger {
-  position: relative;
-  transform: translateX(-6px);
-  .svg-icon {
-    width: 1.2em;
-    height: 1.2em;
-    vertical-align: -0.2em;
-  }
-  .notice-badge {
-    position: absolute;
-    top: 7px;
-    right: -3px;
-    background: #f56c6c;
-    color: #fff;
-    border-radius: 10px;
-    font-size: 10px;
-    height: 16px;
-    line-height: 16px;
-    padding: 0 4px;
-    min-width: 16px;
-    text-align: center;
-    white-space: nowrap;
-    pointer-events: none;
-  }
-}
-.notice-popover {
-  padding: 0 !important;
-}
-.notice-popover .notice-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: #f7f9fb;
-  border-bottom: 1px solid #eee;
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-}
-.notice-popover .notice-mark-all {
-  font-size: 12px;
-  color: #409eff;
-  font-weight: normal;
-  cursor: pointer;
-}
-.notice-popover .notice-mark-all:hover {
-  color: #2b7cc1;
-}
-.notice-popover .notice-loading,
-.notice-popover .notice-empty {
-  padding: 24px;
-  text-align: center;
-  color: #bbb;
-  font-size: 12px;
-  line-height: 1.8;
-}
-.notice-popover .notice-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-bottom: 1px solid #f5f5f5;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.notice-popover .notice-item:last-child {
-  border-bottom: none;
-}
-.notice-popover .notice-item:hover {
-  background: #f7f9fb;
-}
-.notice-popover .notice-item.is-read .notice-tag,
-.notice-popover .notice-item.is-read .notice-item-title,
-.notice-popover .notice-item.is-read .notice-item-date {
-  opacity: 0.45;
-  filter: grayscale(1);
-  color: #999;
-}
-.notice-popover .notice-tag {
-  flex-shrink: 0;
-}
-.notice-popover .notice-item-title {
-  flex: 1;
-  font-size: 12px;
-  color: #333;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.notice-popover .notice-item-date {
-  flex-shrink: 0;
-  font-size: 11px;
-  color: #bbb;
-}
-</style>

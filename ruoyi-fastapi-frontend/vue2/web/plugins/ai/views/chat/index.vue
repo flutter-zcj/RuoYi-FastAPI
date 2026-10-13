@@ -1,30 +1,115 @@
+<style lang="scss" scoped>
+.chat-container { height: calc(100vh - 84px); padding: 0; background-color: #f0f2f5; overflow: hidden; }
+.session-sidebar { border-right: 1px solid #dcdfe6; background-color: #ffffff; display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02); z-index: 10; margin-bottom: 0; overflow: hidden;
+  .sidebar-header { padding: 20px; border-bottom: 1px solid #dcdfe6;
+    .new-chat-btn { width: 100%; border-radius: 8px; height: 40px; font-size: 14px; }
+  }
+  .session-list { flex: 1; overflow-y: auto; padding: 10px;
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-thumb { background: #dcdfe6; border-radius: 2px; }
+    .session-item { display: flex; align-items: center; padding: 12px; margin-bottom: 8px; background-color: transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s; position: relative; border: 1px solid transparent;
+      &:hover { background-color: #f5f7fa; }
+      &.active { background-color: #ecf5ff; border-color: #c6e2ff;
+        .session-icon { color: #409eff; }
+        .session-title { color: #409eff; }
+      }
+      .session-icon { margin-right: 10px; color: #909399; display: flex; align-items: center; }
+      .session-info { flex: 1; overflow: hidden;
+        .session-title { font-size: 14px; color: #303133; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .session-time { font-size: 12px; color: #909399; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      }
+      .delete-btn { opacity: 0; transition: opacity 0.2s; padding: 4px; }
+      &:hover .delete-btn { opacity: 1; }
+    }
+    .empty-session { text-align: center; color: #909399; font-size: 13px; margin-top: 40px; }
+  }
+}
+.chat-main { padding: 0; height: 100%; display: flex; flex-direction: column; background-color: #f0f2f5; position: relative; overflow: hidden;
+  .chat-header { height: 60px; background-color: #ffffff; border-bottom: 1px solid #dcdfe6; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+    .header-title { font-size: 16px; font-weight: 600; color: #303133; }
+  }
+  .chat-history { flex: 1; overflow-y: auto; padding: 20px;
+    .chat-content { min-height: 100%; padding-bottom: 20px;
+      &.is-empty { display: flex; flex-direction: column; height: 100%; }
+    }
+    .welcome-screen { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #909399; opacity: 0.8;
+      .welcome-icon { border-radius: 50%; padding: 20px; margin-bottom: 5px; color: #409eff; }
+      h2 { margin-bottom: 10px; font-weight: 500; }
+      p { margin-top: 0; }
+    }
+    .message-row { display: flex; max-width: 900px; margin-bottom: 24px; margin-left: auto; margin-right: auto;
+      .message-avatar { flex-shrink: 0; margin-right: 12px; margin-top: 2px;
+        .avatar-user { background-color: #409eff; }
+        .avatar-ai { background-color: #67c23a; }
+      }
+      .message-content-wrapper { flex: 1; display: flex; flex-direction: column; max-width: calc(100% - 52px);
+        .message-sender { font-size: 12px; color: #909399; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+        .message-time { font-size: 11px; opacity: 0.8; }
+        .message-bubble { padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.6; max-width: 100%; min-width: 60px; background-color: #fff; }
+        .message-footer { margin-top: 6px; display: flex; justify-content: space-between; align-items: center; width: 100%;
+          .message-metrics { font-size: 12px; color: #909399; display: flex; flex-wrap: wrap; gap: 8px; }
+          .footer-actions { display: flex; align-items: center; gap: 10px; }
+          .model-info { margin-left: auto; }
+        }
+      }
+      &.message-user { flex-direction: row-reverse; padding-left: 52px;
+        .message-avatar { margin-left: 12px; margin-right: 0; }
+        .message-content-wrapper { align-items: flex-end;
+          .message-sender { flex-direction: row-reverse; }
+          .message-footer { flex-direction: row-reverse; }
+          .message-bubble { background-color: #409eff; color: #fff; border-top-right-radius: 2px; }
+        }
+      }
+      &.message-ai { padding-right: 52px;
+        .message-bubble { background-color: #ffffff; color: #303133; border-top-left-radius: 2px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+      }
+    }
+  }
+}
+.chat-input-area { background-color: #ffffff; border-top: 1px solid #dcdfe6; padding: 20px;
+  .input-wrapper { max-width: 900px; margin: 0 auto; position: relative; border: 1px solid #dcdfe6; border-radius: 12px; padding: 10px; transition: border-color 0.2s;
+    &:focus-within { border-color: #409eff; box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2); }
+    ::v-deep .el-textarea__inner { border: none; box-shadow: none; padding: 0; resize: none; background: transparent;
+      &:focus { box-shadow: none; }
+    }
+    .selected-images { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #dcdfe6;
+      .selected-image-item { width: 60px; height: 60px; border-radius: 4px; border: 1px solid #dcdfe6; }
+    }
+    .input-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #dcdfe6;
+      .left-actions { display: flex; gap: 6px; align-items: center;
+        .toggle-chip { border-radius: 999px; margin-left: 0; }
+      }
+    }
+  }
+}
+.chat-config-dialog {
+  ::v-deep .el-dialog__body { padding-top: 10px; padding-bottom: 10px; }
+}
+.chat-image-input { display: none; }
+.user-images { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;
+  .user-image-item { width: 100px; height: 100px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.2); }
+}
+.user-text { white-space: pre-wrap; word-break: break-word; }
+</style>
+
 <template>
   <div class="app-container chat-container">
     <el-container style="height: 100%">
       <!-- 侧边栏：会话历史 -->
-      <el-aside
-        width="260px"
-        class="session-sidebar"
-      >
+      <el-aside class="session-sidebar" width="260px">
         <div class="sidebar-header">
           <el-button
-            type="primary"
             class="new-chat-btn"
+            type="primary"
             icon="el-icon-plus"
-            @click="clearChat"
-            >新建对话</el-button
-          >
+            @click="clearChat">新建对话</el-button>
         </div>
-        <div
-          class="session-list"
-          v-loading="sessionLoading"
-        >
+        <div class="session-list" v-loading="sessionLoading">
           <div
             v-for="session in sessionList"
             :key="session.sessionId"
             :class="['session-item', currentSessionId === session.sessionId ? 'active' : '']"
-            @click="loadSession(session.sessionId)"
-          >
+            @click="loadSession(session.sessionId)">
             <div class="session-icon">
               <i class="el-icon-chat-dot-round"></i>
             </div>
@@ -41,13 +126,9 @@
               type="text"
               icon="el-icon-delete"
               style="color: #f56c6c"
-              @click.stop="handleDeleteSession(session.sessionId)"
-            ></el-button>
+              @click.stop="handleDeleteSession(session.sessionId)"></el-button>
           </div>
-          <div
-            v-if="sessionList.length === 0 && !sessionLoading"
-            class="empty-session"
-          >
+          <div class="empty-session" v-if="sessionList.length === 0 && !sessionLoading">
             暂无历史对话
           </div>
         </div>
@@ -60,29 +141,23 @@
             <span class="header-title">AI 智能助手</span>
           </div>
           <div class="header-right">
-            <el-tooltip
-              content="全局参数配置"
-              placement="bottom"
-            >
+            <el-tooltip content="全局参数配置" placement="bottom">
               <el-button
                 icon="el-icon-setting"
                 circle
                 style="margin-right: 10px"
-                @click="openConfigDialog"
-              ></el-button>
+                @click="openConfigDialog"></el-button>
             </el-tooltip>
             <el-select
               v-model="currentModelId"
               placeholder="选择模型"
               size="large"
-              style="width: 210px"
-            >
+              style="width: 210px">
               <el-option
                 v-for="item in modelOptions"
                 :key="item.modelId"
                 :label="`${item.provider}/${item.modelCode}`"
-                :value="item.modelId"
-              />
+                :value="item.modelId"/>
             </el-select>
           </div>
         </div>
@@ -90,22 +165,14 @@
         <div
           class="chat-history"
           ref="chatHistoryRef"
-          @scroll="handleScroll"
-        >
+          @scroll="handleScroll">
           <div
             class="chat-content"
-            ref="chatContentRef"
             :class="{ 'is-empty': messageList.length === 0 }"
-          >
-            <div
-              v-if="messageList.length === 0"
-              class="welcome-screen"
-            >
+            ref="chatContentRef">
+            <div class="welcome-screen" v-if="messageList.length === 0">
               <div class="welcome-icon">
-                <i
-                  class="el-icon-service"
-                  style="font-size: 60px"
-                ></i>
+                <i class="el-icon-service" style="font-size: 60px"></i>
               </div>
               <h2>你好！我是你的 AI 助手</h2>
               <p>请在下方输入问题开始对话...</p>
@@ -114,38 +181,30 @@
             <div
               v-for="(msg, index) in messageList"
               :key="index"
-              :class="['message-row', msg.role === 'user' ? 'message-user' : 'message-ai']"
-            >
+              :class="['message-row', msg.role === 'user' ? 'message-user' : 'message-ai']">
               <div class="message-avatar">
                 <el-avatar
                   :icon="msg.role === 'user' ? 'el-icon-user-solid' : 'el-icon-service'"
                   :size="40"
-                  :class="msg.role === 'user' ? 'avatar-user' : 'avatar-ai'"
-                ></el-avatar>
+                  :class="msg.role === 'user' ? 'avatar-user' : 'avatar-ai'"></el-avatar>
               </div>
               <div class="message-content-wrapper">
                 <div class="message-sender">
                   {{ msg.role === 'user' ? '我' : 'AI 助手' }}
                   <span
                     class="message-time"
-                    v-if="msg.createdAt"
-                    >{{ formatTime(msg.createdAt) }}</span
-                  >
+                    v-if="msg.createdAt">{{ formatTime(msg.createdAt) }}</span>
                 </div>
                 <div class="message-bubble">
                   <div v-if="msg.role === 'user'">
-                    <div
-                      v-if="msg.images && msg.images.length > 0"
-                      class="user-images"
-                    >
+                    <div class="user-images" v-if="msg.images && msg.images.length > 0">
                       <el-image
+                        class="user-image-item"
                         v-for="(img, idx) in msg.images"
                         :key="idx"
                         :src="getImageUrl(img)"
                         :preview-src-list="msg.images.map(getImageUrl)"
-                        fit="cover"
-                        class="user-image-item"
-                      />
+                        fit="cover"/>
                     </div>
                     <div class="user-text">{{ msg.content }}</div>
                   </div>
@@ -154,79 +213,57 @@
                     :content="msg.content"
                     :reasoning-content="msg.reasoningContent"
                     :loading="loading && index === messageList.length - 1"
-                    :is-dark="isDark"
-                  />
+                    :is-dark="isDark"/>
                 </div>
                 <div class="message-footer">
                   <div class="footer-actions">
-                    <el-tooltip
-                      content="复制"
-                      placement="top"
-                    >
+                    <el-tooltip content="复制" placement="top">
                       <el-button
                         type="text"
                         icon="el-icon-document-copy"
                         size="small"
                         style="color: #606266"
-                        @click="copyText(msg.content)"
-                      ></el-button>
+                        @click="copyText(msg.content)"></el-button>
                     </el-tooltip>
-                    <div
-                      v-if="userConfig.metricsDefaultVisible == '0' && hasMetrics(msg)"
-                      class="message-metrics"
-                    >
+                    <div class="message-metrics" v-if="userConfig.metricsDefaultVisible == '0' && hasMetrics(msg)">
                       <span
                         v-if="
                           msg.metrics &&
                           msg.metrics.duration !== null &&
                           msg.metrics.duration !== undefined
-                        "
-                        >耗时 {{ msg.metrics.duration.toFixed(3) }} s</span
-                      >
+                        ">耗时 {{ msg.metrics.duration.toFixed(3) }} s</span>
                       <span
                         v-if="
                           msg.metrics &&
                           msg.metrics.inputTokens !== null &&
                           msg.metrics.inputTokens !== undefined
-                        "
-                        >输入 {{ msg.metrics.inputTokens }} tokens</span
-                      >
+                        ">输入 {{ msg.metrics.inputTokens }} tokens</span>
                       <span
                         v-if="
                           msg.metrics &&
                           msg.metrics.outputTokens !== null &&
                           msg.metrics.outputTokens !== undefined
-                        "
-                        >输出 {{ msg.metrics.outputTokens }} tokens</span
-                      >
+                        ">输出 {{ msg.metrics.outputTokens }} tokens</span>
                       <span
                         v-if="
                           msg.metrics &&
                           msg.metrics.totalTokens !== null &&
                           msg.metrics.totalTokens !== undefined
-                        "
-                        >总 {{ msg.metrics.totalTokens }} tokens</span
-                      >
+                        ">总 {{ msg.metrics.totalTokens }} tokens</span>
                       <span
                         v-if="
                           msg.metrics &&
                           msg.metrics.reasoningTokens !== null &&
                           msg.metrics.reasoningTokens !== undefined
-                        "
-                        >推理 {{ msg.metrics.reasoningTokens }} tokens</span
-                      >
+                        ">推理 {{ msg.metrics.reasoningTokens }} tokens</span>
                     </div>
                   </div>
-                  <div
-                    v-if="msg.role === 'assistant'"
-                    class="model-info"
-                  >
+                  <div class="model-info" v-if="msg.role === 'assistant'">
                     <el-tag
                       size="small"
                       type="info"
                       effect="plain"
-                      v-if="currentSessionAgentData && currentSessionAgentData.model"
-                    >
+                      v-if="currentSessionAgentData && currentSessionAgentData.model">
                       {{ currentSessionAgentData.model.provider }} /
                       {{ currentSessionAgentData.model.id }}
                     </el-tag>
@@ -234,8 +271,7 @@
                       size="small"
                       type="info"
                       effect="plain"
-                      v-else-if="currentModelInfo"
-                    >
+                      v-else-if="currentModelInfo">
                       {{ currentModelInfo.provider }} /
                       {{ currentModelInfo.modelCode }}
                     </el-tag>
@@ -254,21 +290,16 @@
               :rows="3"
               resize="none"
               placeholder="请输入您的问题... (Enter 发送，Shift + Enter 换行)"
-              @keydown.enter.native.exact.prevent="handleSend"
               :disabled="loading"
-            />
-            <div
-              class="selected-images"
-              v-if="userConfig.visionEnabled == '0' && inputImages.length"
-            >
+              @keydown.enter.native.exact.prevent="handleSend"/>
+            <div class="selected-images" v-if="userConfig.visionEnabled == '0' && inputImages.length">
               <el-image
+                class="selected-image-item"
                 v-for="(img, idx) in inputImages"
                 :key="idx"
                 :src="getImageUrl(img)"
                 :preview-src-list="inputImages.map(getImageUrl)"
-                fit="cover"
-                class="selected-image-item"
-              />
+                fit="cover"/>
             </div>
             <div class="input-actions">
               <div class="left-actions">
@@ -279,35 +310,31 @@
                     userConfig.visionEnabled == '0'
                   "
                   content="上传图片"
-                  placement="top"
-                >
+                  placement="top">
                   <el-button
                     circle
                     type="text"
                     icon="el-icon-picture-outline"
                     style="color: #606266"
-                    @click="triggerImageUpload"
-                  />
+                    @click="triggerImageUpload"/>
                 </el-tooltip>
                 <el-button
-                  v-if="currentModelInfo && currentModelInfo.supportReasoning === 'Y'"
                   class="toggle-chip"
+                  v-if="currentModelInfo && currentModelInfo.supportReasoning === 'Y'"
                   size="mini"
                   icon="deepthink"
                   :type="chatConfig.isReasoning ? 'primary' : ''"
                   :plain="!chatConfig.isReasoning"
-                  @click="chatConfig.isReasoning = !chatConfig.isReasoning"
-                >
-                  <svg-icon icon-class="deepthink" />
+                  @click="chatConfig.isReasoning = !chatConfig.isReasoning">
+                  <svg-icon icon-class="deepthink"/>
                   深度思考
                 </el-button>
               </div>
               <el-button
                 :type="loading ? 'danger' : 'primary'"
                 :icon="loading ? 'el-icon-video-pause' : 'el-icon-s-promotion'"
-                @click="handleMainAction"
                 :disabled="!loading && !inputMessage.trim() && !inputImages.length"
-              >
+                @click="handleMainAction">
                 {{ loading ? '停止' : '发送' }}
               </el-button>
             </div>
@@ -318,16 +345,12 @@
 
     <!-- 全局配置弹窗 -->
     <el-dialog
+      class="chat-config-dialog"
       :visible.sync="showConfigDialog"
       title="用户全局配置"
       width="700px"
-      append-to-body
-      class="chat-config-dialog"
-    >
-      <el-form
-        :model="editingUserConfig"
-        label-width="150px"
-      >
+      append-to-body>
+      <el-form :model="editingUserConfig" label-width="150px">
         <el-row>
           <el-col :span="12">
             <el-form-item label="默认温度">
@@ -338,8 +361,7 @@
                 :step="0.1"
                 :precision="1"
                 placeholder="默认温度"
-                style="width: 100%"
-              />
+                style="width: 100%"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -347,24 +369,19 @@
               <el-switch
                 active-value="0"
                 inactive-value="1"
-                v-model="editingUserConfig.addHistoryToContext"
-              />
+                v-model="editingUserConfig.addHistoryToContext"/>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item
-              label="历史消息轮数"
-              v-if="editingUserConfig.addHistoryToContext == '0'"
-            >
+            <el-form-item label="历史消息轮数" v-if="editingUserConfig.addHistoryToContext == '0'">
               <el-input-number
                 v-model="editingUserConfig.numHistoryRuns"
                 :min="1"
                 :max="20"
                 placeholder="历史消息轮数"
-                style="width: 100%"
-              />
+                style="width: 100%"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -372,8 +389,7 @@
               <el-switch
                 active-value="0"
                 inactive-value="1"
-                v-model="editingUserConfig.metricsDefaultVisible"
-              />
+                v-model="editingUserConfig.metricsDefaultVisible"/>
             </el-form-item>
           </el-col>
         </el-row>
@@ -383,22 +399,17 @@
               <el-switch
                 active-value="0"
                 inactive-value="1"
-                v-model="editingUserConfig.visionEnabled"
-              />
+                v-model="editingUserConfig.visionEnabled"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item
-              label="图片最大大小"
-              v-if="editingUserConfig.visionEnabled"
-            >
+            <el-form-item label="图片最大大小" v-if="editingUserConfig.visionEnabled">
               <el-input-number
                 v-model="editingUserConfig.imageMaxSizeMb"
                 :min="1"
                 :max="50"
                 placeholder="图片大小"
-                style="width: 100%"
-              >
+                style="width: 100%">
                 <template #suffix>
                   <span>MB</span>
                 </template>
@@ -413,8 +424,7 @@
                 v-model="editingUserConfig.systemPrompt"
                 type="textarea"
                 :rows="4"
-                placeholder="设置全局系统提示词"
-              />
+                placeholder="设置全局系统提示词"/>
             </el-form-item>
           </el-col>
         </el-row>
@@ -422,27 +432,83 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="showConfigDialog = false">取消</el-button>
-          <el-button
-            type="primary"
-            @click="handleSaveConfig"
-            >保存</el-button
-          >
+          <el-button type="primary" @click="handleSaveConfig">保存</el-button>
         </span>
       </template>
     </el-dialog>
     <input
+      class="chat-image-input"
       v-if="userConfig.visionEnabled"
       ref="imageInputRef"
       type="file"
       accept="image/*"
       multiple
-      class="chat-image-input"
-      @change="handleImageInputChange"
-    />
+      @change="handleImageInputChange"/>
   </div>
 </template>
 
 <script>
+/**
+ * 组件名称：AiChat
+ * 功能说明：AI 智能对话页面，支持会话历史、模型选择、流式对话、图片上传与全局配置
+ * 研发时间：2026/07/28
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ * @data {Array}   modelOptions            - 可选模型列表
+ * @data {Number}  currentModelId          - 当前选中的模型ID
+ * @data {Array}   messageList             - 消息列表
+ * @data {String}  inputMessage            - 输入框内容
+ * @data {Array}   inputImages             - 待发送的图片列表
+ * @data {Boolean} loading                 - 是否正在请求
+ * @data {String}  currentSessionId        - 当前会话ID
+ * @data {Boolean} showConfigDialog        - 是否显示全局配置弹窗
+ * @data {Array}   sessionList             - 会话历史列表
+ * @data {Boolean} sessionLoading          - 会话列表加载状态
+ * @data {Object}  abortController         - 请求中断控制器
+ * @data {String}  currentRunId            - 当前运行ID
+ * @data {Boolean} isAutoScroll            - 是否自动滚动到底部
+ * @data {Object}  currentSessionAgentData - 当前会话的智能体数据
+ * @data {Boolean} isProgrammaticScroll    - 是否由程序触发滚动
+ * @data {Number}  scrollTimeout           - 滚动定时器
+ * @data {Object}  chatConfig              - 对话配置
+ * @data {Object}  userConfig              - 用户全局配置
+ * @data {Object}  editingUserConfig       - 正在编辑的用户全局配置
+ * @data {Boolean} isDark                  - 是否深色主题
+ *
+ * 事件说明：
+ * @event generateSessionId      - 生成会话ID
+ * @event loadUserConfig         - 加载用户全局配置
+ * @event openConfigDialog       - 打开全局配置弹窗
+ * @event handleSaveConfig       - 保存全局配置
+ * @event hasMetrics             - 判断消息是否包含指标数据
+ * @event getImageUrl            - 获取图片完整访问地址
+ * @event formatTime             - 格式化时间字符串
+ * @event getModels              - 查询全部模型
+ * @event getSessions            - 查询会话历史列表
+ * @event loadSession            - 加载指定会话内容
+ * @event handleDeleteSession    - 删除会话
+ * @event sendRequest            - 发送对话请求并处理流式响应
+ * @event clearChat              - 新建对话
+ * @event copyText               - 复制文本到剪贴板
+ * @event triggerImageUpload     - 触发图片上传
+ * @event handleImageInputChange - 处理图片选择并上传
+ * @event handleSend             - 发送当前输入消息
+ * @event stopGeneration         - 停止当前生成
+ * @event handleScroll           - 监听滚动以控制自动滚动
+ * @event scrollToBottom         - 滚动到底部
+ * @event handleMainAction       - 处理发送/停止主操作
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/07/28     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import { listModelAll } from '../../api/model'
 import {
   listChatSession,
@@ -456,10 +522,18 @@ import { getToken } from '@/utils/auth'
 import AiMessage from './components/AiMessage'
 import { v4 as uuidv4 } from 'uuid'
 
-export default {
+export default
+{
   name: 'AiChat',
+
   components: { AiMessage },
-  data() {
+
+  /**
+   * 组件数据
+   * @returns {Object} 组件响应式数据
+   */
+  data()
+  {
     return {
       modelOptions: [],
       currentModelId: undefined,
@@ -510,56 +584,103 @@ export default {
       isDark: false, // Default to light
     }
   },
-  computed: {
-    currentModelInfo() {
+
+  computed:
+  {
+    /**
+     * 当前选中的模型信息
+     * @returns {Object} 模型信息
+     */
+    currentModelInfo()
+    {
       if (!this.currentModelId) return null
       return this.modelOptions.find((m) => m.modelId === this.currentModelId)
     },
   },
-  watch: {
-    currentModelId(newVal) {
+
+  watch:
+  {
+    /**
+     * 监听当前模型变化并同步默认温度
+     * @param {Number} newVal - 新的模型ID
+     */
+    currentModelId(newVal)
+    {
       const model = this.modelOptions.find((m) => m.modelId === newVal)
-      if (model) {
+      if (model)
+      {
         this.chatConfig.temperature = model.temperature
       }
     },
   },
-  mounted() {
+
+  /**
+   * 组件挂载后初始化模型、会话与全局配置
+   */
+  mounted()
+  {
     this.getModels()
     this.getSessions()
     this.loadUserConfig()
     // Initialize ResizeObserver for auto-scroll if supported
-    if (window.ResizeObserver && this.$refs.chatContentRef) {
-      this.resizeObserver = new ResizeObserver(() => {
-        if (this.isAutoScroll) {
+    if (window.ResizeObserver && this.$refs.chatContentRef)
+    {
+      this.resizeObserver = new ResizeObserver(() =>
+      {
+        if (this.isAutoScroll)
+        {
           this.scrollToBottom()
         }
       })
       this.resizeObserver.observe(this.$refs.chatContentRef)
     }
   },
-  beforeDestroy() {
-    if (this.resizeObserver) {
+
+  /**
+   * 组件销毁前释放观察者与中断控制器
+   */
+  beforeDestroy()
+  {
+    if (this.resizeObserver)
+    {
       this.resizeObserver.disconnect()
     }
-    if (this.abortController) {
+    if (this.abortController)
+    {
       this.abortController.abort()
     }
   },
-  methods: {
-    generateSessionId() {
+
+  methods:
+  {
+    /**
+     * 生成会话ID
+     * @returns {String} 会话ID
+     */
+    generateSessionId()
+    {
       return uuidv4()
     },
-    loadUserConfig() {
-      getUserChatConfig().then((res) => {
-        if (res.data) {
-          if (res.data.temperature === null) {
+
+    /**
+     * 加载用户全局配置
+     */
+    loadUserConfig()
+    {
+      getUserChatConfig().then((res) =>
+      {
+        if (res.data)
+        {
+          if (res.data.temperature === null)
+          {
             res.data.temperature = undefined
           }
-          if (res.data.numHistoryRuns === null) {
+          if (res.data.numHistoryRuns === null)
+          {
             res.data.numHistoryRuns = undefined
           }
-          if (res.data.imageMaxSizeMb === null) {
+          if (res.data.imageMaxSizeMb === null)
+          {
             res.data.imageMaxSizeMb = undefined
           }
           Object.assign(this.userConfig, res.data)
@@ -567,19 +688,37 @@ export default {
         }
       })
     },
-    openConfigDialog() {
+
+    /**
+     * 打开全局配置弹窗
+     */
+    openConfigDialog()
+    {
       Object.assign(this.editingUserConfig, this.userConfig)
       this.showConfigDialog = true
     },
-    handleSaveConfig() {
+
+    /**
+     * 保存全局配置
+     */
+    handleSaveConfig()
+    {
       const payload = { ...this.editingUserConfig }
-      saveUserChatConfig(payload).then(() => {
+      saveUserChatConfig(payload).then(() =>
+      {
         this.$modal.msgSuccess('配置保存成功')
         this.showConfigDialog = false
         this.loadUserConfig()
       })
     },
-    hasMetrics(msg) {
+
+    /**
+     * 判断消息是否包含指标数据
+     * @param {Object} msg - 消息对象
+     * @returns {Boolean} 是否包含指标数据
+     */
+    hasMetrics(msg)
+    {
       const m = msg && msg.metrics
       if (!m) return false
       return (
@@ -590,38 +729,71 @@ export default {
         (m.duration !== null && m.duration !== undefined)
       )
     },
-    getImageUrl(url) {
+
+    /**
+     * 获取图片完整访问地址
+     * @param {String} url - 图片地址
+     * @returns {String} 完整访问地址
+     */
+    getImageUrl(url)
+    {
       if (!url) return ''
-      if (url.startsWith('http') || url.startsWith('https') || url.startsWith('blob:')) {
+      if (url.startsWith('http') || url.startsWith('https') || url.startsWith('blob:'))
+      {
         return url
       }
       return process.env.VUE_APP_BASE_API + url
     },
-    formatTime(timeStr) {
+
+    /**
+     * 格式化时间字符串
+     * @param {String} timeStr - 时间字符串
+     * @returns {String} 格式化后的时间
+     */
+    formatTime(timeStr)
+    {
       if (!timeStr) return ''
-      try {
+      try
+      {
         const date = new Date(timeStr)
         return date.toLocaleString()
-      } catch (e) {
+      }
+      catch (e)
+      {
         return timeStr
       }
     },
-    getModels() {
-      listModelAll().then((res) => {
+
+    /**
+     * 查询全部模型
+     */
+    getModels()
+    {
+      listModelAll().then((res) =>
+      {
         this.modelOptions = res.data
-        if (this.modelOptions.length > 0) {
+        if (this.modelOptions.length > 0)
+        {
           this.currentModelId = this.modelOptions[0].modelId
           const model = this.modelOptions[0]
           this.chatConfig.temperature = model.temperature
         }
       })
     },
-    getSessions() {
+
+    /**
+     * 查询会话历史列表
+     */
+    getSessions()
+    {
       this.sessionLoading = true
-      listChatSession().then((res) => {
+      listChatSession().then((res) =>
+      {
         this.sessionList = res.data
-        if (this.sessionList && this.sessionList.length > 0) {
-          this.sessionList.sort((a, b) => {
+        if (this.sessionList && this.sessionList.length > 0)
+        {
+          this.sessionList.sort((a, b) =>
+          {
             const dateA = new Date(a.createdAt).getTime()
             const dateB = new Date(b.createdAt).getTime()
             return dateB - dateA
@@ -630,12 +802,19 @@ export default {
         this.sessionLoading = false
       })
     },
-    loadSession(sessionId) {
+
+    /**
+     * 加载指定会话内容
+     * @param {String} sessionId - 会话ID
+     */
+    loadSession(sessionId)
+    {
       if (this.currentSessionId === sessionId) return
       this.currentSessionId = sessionId
       this.messageList = []
       this.loading = true
-      getChatSession(sessionId).then((res) => {
+      getChatSession(sessionId).then((res) =>
+      {
         this.messageList = res.data.messages
         this.currentSessionAgentData = res.data.agentData
         this.loading = false
@@ -643,23 +822,40 @@ export default {
         this.scrollToBottom()
       })
     },
-    handleDeleteSession(sessionId) {
+
+    /**
+     * 删除会话
+     * @param {String} sessionId - 会话ID
+     */
+    handleDeleteSession(sessionId)
+    {
       this.$modal
         .confirm('是否确认删除该会话？')
-        .then(() => {
+        .then(() =>
+        {
           return delChatSession(sessionId)
         })
-        .then(() => {
+        .then(() =>
+        {
           this.getSessions()
-          if (this.currentSessionId === sessionId) {
+          if (this.currentSessionId === sessionId)
+          {
             this.clearChat()
           }
           this.$modal.msgSuccess('删除成功')
         })
         .catch(() => {})
     },
-    async sendRequest(text, images) {
-      if (!this.currentModelId) {
+
+    /**
+     * 发送对话请求并处理流式响应
+     * @param {String} text   - 消息文本
+     * @param {Array}  images - 图片列表
+     */
+    async sendRequest(text, images)
+    {
+      if (!this.currentModelId)
+      {
         this.$modal.msgError('请先选择模型')
         return
       }
@@ -679,7 +875,8 @@ export default {
 
       this.abortController = new AbortController()
 
-      try {
+      try
+      {
         const response = await fetch(process.env.VUE_APP_BASE_API + '/ai/chat/send', {
           method: 'POST',
           headers: {
@@ -705,7 +902,8 @@ export default {
         let buffer = ''
         let needRefreshSessions = false
 
-        while (true) {
+        while (true)
+        {
           if (!this.abortController) break
           const { done, value } = await reader.read()
           if (done) break
@@ -714,92 +912,147 @@ export default {
           const lines = buffer.split('\n')
           buffer = lines.pop()
 
-          for (const line of lines) {
+          for (const line of lines)
+          {
             if (!line.trim()) continue
-            try {
+            try
+            {
               const data = JSON.parse(line)
-              if (data.type === 'content') {
+              if (data.type === 'content')
+              {
                 aiContent += data.content
                 this.$set(this.messageList[aiMsgIndex], 'content', aiContent)
-              } else if (data.type === 'reasoning') {
+              }
+              else if (data.type === 'reasoning')
+              {
                 aiReasoning += data.content
                 this.$set(this.messageList[aiMsgIndex], 'reasoningContent', aiReasoning)
-              } else if (data.type === 'meta') {
+              }
+              else if (data.type === 'meta')
+              {
                 this.currentSessionId = data.session_id
-                if (!this.sessionList.find((s) => s.sessionId === data.session_id)) {
+                if (!this.sessionList.find((s) => s.sessionId === data.session_id))
+                {
                   needRefreshSessions = true
                 }
-              } else if (data.type === 'run_info') {
+              }
+              else if (data.type === 'run_info')
+              {
                 this.currentRunId = data.run_id
-              } else if (data.type === 'metrics') {
+              }
+              else if (data.type === 'metrics')
+              {
                 this.$set(this.messageList[aiMsgIndex], 'metrics', data.metrics)
-              } else if (data.type === 'error') {
+              }
+              else if (data.type === 'error')
+              {
                 this.$modal.msgError(data.error)
               }
-            } catch (e) {
+            }
+            catch (e)
+            {
               console.error('Parse error', e)
             }
           }
         }
 
-        if (needRefreshSessions) {
+        if (needRefreshSessions)
+        {
           this.getSessions()
         }
-      } catch (err) {
-        if (err.name === 'AbortError') {
+      }
+      catch (err)
+      {
+        if (err.name === 'AbortError')
+        {
           // User aborted
-        } else {
+        }
+        else
+        {
           this.$modal.msgError('请求失败: ' + err.message)
         }
-      } finally {
+      }
+      finally
+      {
         this.loading = false
         this.abortController = null
       }
     },
-    clearChat() {
+
+    /**
+     * 新建对话
+     */
+    clearChat()
+    {
       this.messageList = []
       this.currentSessionId = this.generateSessionId()
       this.currentSessionAgentData = null
     },
-    copyText(text) {
-      if (!text) {
+
+    /**
+     * 复制文本到剪贴板
+     * @param {String} text - 待复制的文本
+     */
+    copyText(text)
+    {
+      if (!text)
+      {
         this.$modal.msgWarning('内容为空，无法复制')
         return
       }
       navigator.clipboard
         .writeText(text)
-        .then(() => {
+        .then(() =>
+        {
           this.$modal.msgSuccess('复制成功')
         })
-        .catch(() => {
+        .catch(() =>
+        {
           this.$modal.msgError('复制失败')
         })
     },
-    triggerImageUpload() {
+
+    /**
+     * 触发图片上传
+     */
+    triggerImageUpload()
+    {
       if (!this.userConfig.visionEnabled || this.loading) return
       const input = this.$refs.imageInputRef
-      if (input) {
+      if (input)
+      {
         input.value = ''
         input.click()
       }
     },
-    async handleImageInputChange(event) {
+
+    /**
+     * 处理图片选择并上传
+     * @param {Event} event - 文件选择事件
+     */
+    async handleImageInputChange(event)
+    {
       const files = Array.from(event.target.files || [])
       if (!files.length) return
-      if (files.length + this.inputImages.length > 10) {
+      if (files.length + this.inputImages.length > 10)
+      {
         this.$modal.msgError('最多只能上传 10 张图片')
         return
       }
       const maxSize = (this.userConfig.imageMaxSizeMb || 5) * 1024 * 1024
-      for (const file of files) {
-        if (file.size > maxSize) {
+      for (const file of files)
+      {
+        if (file.size > maxSize)
+        {
           this.$modal.msgError(`单张图片大小不能超过 ${this.userConfig.imageMaxSizeMb} MB`)
           return
         }
       }
-      try {
+      try
+      {
         this.$modal.loading('正在上传图片，请稍候...')
-        for (const file of files) {
+        for (const file of files)
+        {
           const form = new FormData()
           form.append('file', file)
           const resp = await fetch(process.env.VUE_APP_BASE_API + '/common/upload', {
@@ -810,23 +1063,36 @@ export default {
             body: form,
           })
           const data = await resp.json()
-          if (data.code === 200 && data.fileName) {
+          if (data.code === 200 && data.fileName)
+          {
             this.inputImages.push(data.fileName)
-          } else {
+          }
+          else
+          {
             this.$modal.msgError(data.msg || '上传图片失败')
           }
         }
-      } catch (e) {
+      }
+      catch (e)
+      {
         this.$modal.msgError('上传图片失败')
-      } finally {
+      }
+      finally
+      {
         this.$modal.closeLoading()
       }
     },
-    async handleSend() {
+
+    /**
+     * 发送当前输入消息
+     */
+    async handleSend()
+    {
       const text = this.inputMessage.trim()
       const images = this.inputImages
       if (!text && !images.length) return
-      if (!this.currentModelId) {
+      if (!this.currentModelId)
+      {
         this.$modal.msgError('请先选择模型')
         return
       }
@@ -843,475 +1109,102 @@ export default {
 
       await this.sendRequest(text, imageList)
     },
-    stopGeneration() {
-      if (this.abortController) {
+
+    /**
+     * 停止当前生成
+     */
+    stopGeneration()
+    {
+      if (this.abortController)
+      {
         const controller = this.abortController
         this.abortController = null
         this.loading = false
 
-        if (this.currentRunId) {
+        if (this.currentRunId)
+        {
           cancelChatRun(this.currentRunId)
             .then(() => {})
-            .catch((err) => {
+            .catch((err) =>
+            {
               console.error('Failed to cancel run:', err)
             })
-            .finally(() => {
+            .finally(() =>
+            {
               controller.abort()
             })
-        } else {
+        }
+        else
+        {
           controller.abort()
         }
       }
     },
-    handleScroll(e) {
+
+    /**
+     * 监听滚动以控制自动滚动
+     * @param {Event} e - 滚动事件
+     */
+    handleScroll(e)
+    {
       if (this.isProgrammaticScroll) return
 
       const { scrollTop, scrollHeight, clientHeight } = e.target
       const distanceToBottom = scrollHeight - scrollTop - clientHeight
 
-      if (distanceToBottom > 100) {
+      if (distanceToBottom > 100)
+      {
         this.isAutoScroll = false
-      } else if (distanceToBottom < 20) {
+      }
+      else if (distanceToBottom < 20)
+      {
         this.isAutoScroll = true
       }
     },
-    scrollToBottom() {
-      if (this.isAutoScroll && this.$refs.chatHistoryRef) {
+
+    /**
+     * 滚动到底部
+     */
+    scrollToBottom()
+    {
+      if (this.isAutoScroll && this.$refs.chatHistoryRef)
+      {
         this.isProgrammaticScroll = true
 
         this.$refs.chatHistoryRef.scrollTop = this.$refs.chatHistoryRef.scrollHeight
 
-        this.$nextTick(() => {
-          if (this.$refs.chatHistoryRef && this.isAutoScroll) {
+        this.$nextTick(() =>
+        {
+          if (this.$refs.chatHistoryRef && this.isAutoScroll)
+          {
             this.$refs.chatHistoryRef.scrollTop = this.$refs.chatHistoryRef.scrollHeight
           }
         })
 
         if (this.scrollTimeout) clearTimeout(this.scrollTimeout)
 
-        this.scrollTimeout = setTimeout(() => {
+        this.scrollTimeout = setTimeout(() =>
+        {
           this.isProgrammaticScroll = false
           this.scrollTimeout = null
         }, 100)
       }
     },
-    handleMainAction() {
-      if (this.loading) {
+
+    /**
+     * 处理发送/停止主操作
+     */
+    handleMainAction()
+    {
+      if (this.loading)
+      {
         this.stopGeneration()
-      } else {
+      }
+      else
+      {
         this.handleSend()
       }
     },
   },
 }
 </script>
-
-<style scoped lang="scss">
-.chat-container {
-  height: calc(100vh - 84px);
-  padding: 0;
-  background-color: #f0f2f5;
-  overflow: hidden;
-}
-
-.session-sidebar {
-  border-right: 1px solid #dcdfe6;
-  background-color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
-  z-index: 10;
-  margin-bottom: 0;
-  overflow: hidden;
-
-  .sidebar-header {
-    padding: 20px;
-    border-bottom: 1px solid #dcdfe6;
-
-    .new-chat-btn {
-      width: 100%;
-      border-radius: 8px;
-      height: 40px;
-      font-size: 14px;
-    }
-  }
-
-  .session-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: #dcdfe6;
-      border-radius: 2px;
-    }
-
-    .session-item {
-      display: flex;
-      align-items: center;
-      padding: 12px;
-      margin-bottom: 8px;
-      background-color: transparent;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
-      border: 1px solid transparent;
-
-      &:hover {
-        background-color: #f5f7fa;
-      }
-
-      &.active {
-        background-color: #ecf5ff;
-        border-color: #c6e2ff;
-
-        .session-icon {
-          color: #409eff;
-        }
-
-        .session-title {
-          color: #409eff;
-        }
-      }
-
-      .session-icon {
-        margin-right: 10px;
-        color: #909399;
-        display: flex;
-        align-items: center;
-      }
-
-      .session-info {
-        flex: 1;
-        overflow: hidden;
-
-        .session-title {
-          font-size: 14px;
-          color: #303133;
-          margin-bottom: 4px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .session-time {
-          font-size: 12px;
-          color: #909399;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-      }
-
-      .delete-btn {
-        opacity: 0;
-        transition: opacity 0.2s;
-        padding: 4px;
-      }
-
-      &:hover .delete-btn {
-        opacity: 1;
-      }
-    }
-
-    .empty-session {
-      text-align: center;
-      color: #909399;
-      font-size: 13px;
-      margin-top: 40px;
-    }
-  }
-}
-
-.chat-main {
-  padding: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: #f0f2f5;
-  position: relative;
-  overflow: hidden;
-
-  .chat-header {
-    height: 60px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #dcdfe6;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
-
-    .header-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #303133;
-    }
-  }
-
-  .chat-history {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-
-    .chat-content {
-      min-height: 100%;
-      padding-bottom: 20px;
-
-      &.is-empty {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-      }
-    }
-
-    .welcome-screen {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: #909399;
-      opacity: 0.8;
-
-      .welcome-icon {
-        border-radius: 50%;
-        padding: 20px;
-        margin-bottom: 5px;
-        color: #409eff;
-      }
-
-      h2 {
-        margin-bottom: 10px;
-        font-weight: 500;
-      }
-
-      p {
-        margin-top: 0;
-      }
-    }
-
-    .message-row {
-      display: flex;
-      max-width: 900px;
-      margin-bottom: 24px;
-      margin-left: auto;
-      margin-right: auto;
-
-      .message-avatar {
-        flex-shrink: 0;
-        margin-right: 12px;
-        margin-top: 2px;
-
-        .avatar-user {
-          background-color: #409eff;
-        }
-
-        .avatar-ai {
-          background-color: #67c23a;
-        }
-      }
-
-      .message-content-wrapper {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        max-width: calc(100% - 52px);
-
-        .message-sender {
-          font-size: 12px;
-          color: #909399;
-          margin-bottom: 4px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .message-time {
-          font-size: 11px;
-          opacity: 0.8;
-        }
-
-        .message-bubble {
-          padding: 12px 16px;
-          border-radius: 12px;
-          font-size: 15px;
-          line-height: 1.6;
-          max-width: 100%;
-          min-width: 60px;
-          background-color: #fff;
-        }
-
-        .message-footer {
-          margin-top: 6px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          width: 100%;
-
-          .message-metrics {
-            font-size: 12px;
-            color: #909399;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-          }
-
-          .footer-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-          }
-
-          .model-info {
-            margin-left: auto;
-          }
-        }
-      }
-
-      &.message-user {
-        flex-direction: row-reverse;
-        padding-left: 52px;
-
-        .message-avatar {
-          margin-left: 12px;
-          margin-right: 0;
-        }
-
-        .message-content-wrapper {
-          align-items: flex-end;
-
-          .message-sender {
-            flex-direction: row-reverse;
-          }
-
-          .message-footer {
-            flex-direction: row-reverse;
-          }
-
-          .message-bubble {
-            background-color: #409eff;
-            color: #fff;
-            border-top-right-radius: 2px;
-          }
-        }
-      }
-
-      &.message-ai {
-        padding-right: 52px;
-
-        .message-bubble {
-          background-color: #ffffff;
-          color: #303133;
-          border-top-left-radius: 2px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-      }
-    }
-  }
-}
-
-.chat-input-area {
-  background-color: #ffffff;
-  border-top: 1px solid #dcdfe6;
-  padding: 20px;
-
-  .input-wrapper {
-    max-width: 900px;
-    margin: 0 auto;
-    position: relative;
-    border: 1px solid #dcdfe6;
-    border-radius: 12px;
-    padding: 10px;
-    transition: border-color 0.2s;
-
-    &:focus-within {
-      border-color: #409eff;
-      box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
-    }
-
-    ::v-deep .el-textarea__inner {
-      border: none;
-      box-shadow: none;
-      padding: 0;
-      resize: none;
-      background: transparent;
-
-      &:focus {
-        box-shadow: none;
-      }
-    }
-
-    .selected-images {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed #dcdfe6;
-
-      .selected-image-item {
-        width: 60px;
-        height: 60px;
-        border-radius: 4px;
-        border: 1px solid #dcdfe6;
-      }
-    }
-
-    .input-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid #dcdfe6;
-
-      .left-actions {
-        display: flex;
-        gap: 6px;
-        align-items: center;
-
-        .toggle-chip {
-          border-radius: 999px;
-          margin-left: 0;
-        }
-      }
-    }
-  }
-}
-
-.chat-config-dialog {
-  ::v-deep .el-dialog__body {
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-}
-
-.chat-image-input {
-  display: none;
-}
-
-.user-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
-
-  .user-image-item {
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
-    cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-}
-
-.user-text {
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-</style>

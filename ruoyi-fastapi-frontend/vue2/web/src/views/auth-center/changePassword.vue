@@ -1,125 +1,103 @@
+<style lang="scss" scoped>
+.auth-flow { min-height: 410px; }
+.panel-kicker { margin: 0 0 8px; color: var(--oauth-color-warning-dark-2); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; }
+h2 { margin: 0; color: var(--oauth-text-color-primary); font-size: 25px; font-weight: 650; line-height: 1.4; }
+.panel-lead { margin: 12px 0 18px; color: var(--oauth-text-color-regular); font-size: 13px; line-height: 1.7; }
+.panel-lead strong { color: var(--oauth-text-color-primary); }
+.security-impact { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 18px; padding: 12px 14px; background: var(--oauth-color-warning-light-9); border: 1px solid var(--oauth-color-warning-light-7); border-radius: 8px; color: var(--oauth-color-warning-dark-2); }
+.security-impact > .el-icon { flex: 0 0 auto; margin-top: 2px; }
+.security-impact strong, .security-impact small { display: block; }
+.security-impact strong { color: var(--oauth-text-color-primary); font-size: 12px; }
+.security-impact small { margin-top: 3px; color: var(--oauth-text-color-regular); font-size: 11px; line-height: 1.5; }
+.el-alert { margin-bottom: 18px; }
+.password-meter { width: 100%; margin-top: 8px; }
+.meter-heading { display: flex; justify-content: space-between; color: var(--oauth-text-color-secondary); font-size: 11px; }
+.meter-heading strong.is-0 { color: var(--oauth-text-color-secondary); }
+.meter-heading strong.is-1 { color: var(--oauth-color-danger); }
+.meter-heading strong.is-2 { color: var(--oauth-color-warning-dark-2); }
+.meter-heading strong.is-3 { color: var(--oauth-color-success); }
+.meter-bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 6px 0; }
+.meter-bars i { height: 3px; background: var(--oauth-fill-color-dark); border-radius: 3px; }
+.meter-bars i.active { background: var(--oauth-color-warning); }
+.meter-bars i:nth-child(3).active { background: var(--oauth-color-success); }
+.password-meter > small { color: var(--oauth-text-color-secondary); font-size: 11px; line-height: 1.5; }
+.primary-action { width: 100%; height: 44px; margin-top: 10px; }
+</style>
+
 <template>
   <AuthCenterShell
     :current-step="0"
     :steps="['保护账户', '确认权限']"
     :expires-in="interaction.expiresIn"
     :application-name="interaction.client?.clientName"
-    :application-id="interaction.client?.clientId"
-  >
-    <div
-      v-loading="initializing"
-      class="auth-flow"
-    >
+    :application-id="interaction.client?.clientId">
+    <div class="auth-flow" v-loading="initializing">
       <p class="panel-kicker">账户保护</p>
       <h2>先设置新的登录密码</h2>
       <p class="panel-lead">
-        检测到当前密码已过期或仍是初始密码。更新后才能继续访问 <strong>{{ applicationName }}</strong
-        >。
+        检测到当前密码已过期或仍是初始密码。更新后才能继续访问 <strong>{{ applicationName }}</strong>。
       </p>
 
       <div class="security-impact">
-        <i
-          class="el-icon el-icon-warning-outline"
-          aria-hidden="true"
-        ></i>
-        <span
-          ><strong>更新后会保护整个账户</strong
-          ><small>其他外部应用中的旧登录会话会退出，需要使用新密码重新登录。</small></span
-        >
+        <i class="el-icon el-icon-warning-outline" aria-hidden="true"></i>
+        <span><strong>更新后会保护整个账户</strong><small>其他外部应用中的旧登录会话会退出，需要使用新密码重新登录。</small></span>
       </div>
       <el-alert
         v-if="errorMessage"
         :title="errorMessage"
         type="error"
         show-icon
-        :closable="false"
-      />
+        :closable="false"/>
 
       <el-form
         ref="passwordRef"
         :model="form"
         :rules="rules"
         label-position="top"
-        @submit.native.prevent="submit"
-      >
-        <el-form-item
-          label="当前密码"
-          prop="oldPassword"
-        >
+        @submit.native.prevent="submit">
+        <el-form-item label="当前密码" prop="oldPassword">
           <el-input
             v-model="form.oldPassword"
             type="password"
             show-password
             size="medium"
             autocomplete="current-password"
-            placeholder="用于确认是你本人"
-          >
-            <template #prefix
-              ><i
-                class="el-icon el-icon-lock"
-                aria-hidden="true"
-              ></i
-            ></template>
+            placeholder="用于确认是你本人">
+            <template #prefix><i class="el-icon el-icon-lock" aria-hidden="true"></i></template>
           </el-input>
         </el-form-item>
-        <el-form-item
-          label="新密码"
-          prop="newPassword"
-        >
+        <el-form-item label="新密码" prop="newPassword">
           <el-input
             v-model="form.newPassword"
             type="password"
             show-password
             size="medium"
             autocomplete="new-password"
-            placeholder="输入新的登录密码"
-          >
-            <template #prefix
-              ><i
-                class="el-icon el-icon-key"
-                aria-hidden="true"
-              ></i
-            ></template>
+            placeholder="输入新的登录密码">
+            <template #prefix><i class="el-icon el-icon-key" aria-hidden="true"></i></template>
           </el-input>
-          <div
-            class="password-meter"
-            aria-live="polite"
-          >
+          <div class="password-meter" aria-live="polite">
             <div class="meter-heading">
-              <span>安全强度</span
-              ><strong :class="`is-${strengthLevel}`">{{ strengthLabel }}</strong>
+              <span>安全强度</span><strong :class="`is-${strengthLevel}`">{{ strengthLabel }}</strong>
             </div>
-            <div
-              class="meter-bars"
-              aria-hidden="true"
-            >
+            <div class="meter-bars" aria-hidden="true">
               <i
                 v-for="index in 3"
                 :key="index"
-                :class="{ active: index <= strengthLevel }"
-              />
+                :class="{ active: index <= strengthLevel }"/>
             </div>
             <small>{{ policyDescription }}</small>
           </div>
         </el-form-item>
-        <el-form-item
-          label="再次输入新密码"
-          prop="confirmPassword"
-        >
+        <el-form-item label="再次输入新密码" prop="confirmPassword">
           <el-input
             v-model="form.confirmPassword"
             type="password"
             show-password
             size="medium"
             autocomplete="new-password"
-            placeholder="再次输入，避免输错"
-          >
-            <template #prefix
-              ><i
-                class="el-icon el-icon-circle-check"
-                aria-hidden="true"
-              ></i
-            ></template>
+            placeholder="再次输入，避免输错">
+            <template #prefix><i class="el-icon el-icon-circle-check" aria-hidden="true"></i></template>
           </el-input>
         </el-form-item>
         <el-button
@@ -127,17 +105,57 @@
           type="primary"
           size="medium"
           native-type="submit"
-          :loading="submitting"
-        >
-          更新密码并继续
-        </el-button>
+          :loading="submitting">更新密码并继续</el-button>
       </el-form>
     </div>
   </AuthCenterShell>
 </template>
 
 <script>
-export default { name: 'AuthCenterChangePassword' }
+/**
+ * 组件名称：AuthCenterChangePassword
+ * 功能说明：统一认证中心改密页面，校验密码强度并提交新密码
+ * 研发时间：2026/10/01
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ * @data {String}   interactionId        - 认证交互标识
+ * @data {Function} csrfToken            - 获取 CSRF 令牌
+ * @data {Function} goToAction           - 跳转到指定认证动作
+ * @data {Function} followServerRedirect - 跟随服务端重定向
+ * @data {Number}   pwdChrType           - 密码字符类型策略
+ * @data {Array}    infoPwdValidator     - 密码基础校验规则
+ * @data {Object}   router               - 路由实例
+ * @data {Object}   passwordRef          - 密码表单引用
+ * @data {Object}   interaction          - 认证交互数据
+ * @data {Boolean}  initializing         - 是否初始化中
+ * @data {Boolean}  submitting           - 是否提交中
+ * @data {String}   errorMessage         - 错误提示信息
+ * @data {Object}   form                 - 密码表单数据
+ * @data {String}   applicationName      - 应用名称
+ * @data {String}   policyDescription    - 密码策略说明
+ * @data {Number}   strengthLevel        - 密码强度等级
+ * @data {String}   strengthLabel        - 密码强度文案
+ * @data {Function} validateNewPassword  - 校验新密码
+ * @data {Function} validateConfirmation - 校验确认密码
+ * @data {Object}   rules                - 表单校验规则
+ *
+ * 事件说明：
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/01     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
+export default
+{
+  name: 'AuthCenterChangePassword'
+}
 </script>
 
 <script setup>
@@ -213,8 +231,11 @@ const rules = computed(() => ({
   confirmPassword: [{ validator: validateConfirmation, trigger: 'blur' }],
 }))
 
-/** 读取认证交互状态并检查是否需要修改密码 */
-async function initialize() {
+/**
+ * 读取认证交互状态并检查是否需要修改密码
+ */
+async function initialize()
+{
   if (!interactionId.value || !csrfToken()) {
     return fatal('认证请求不完整，请返回应用重新登录')
   }
@@ -231,8 +252,11 @@ async function initialize() {
   }
 }
 
-/** 校验并提交密码修改 */
-async function submit() {
+/**
+ * 校验并提交密码修改
+ */
+async function submit()
+{
   if (!interactionId.value || !csrfToken()) {
     return fatal('认证请求不完整，请返回应用重新登录')
   }
@@ -262,141 +286,13 @@ async function submit() {
   }
 }
 
-/** 跳转到认证错误页面 */
-function fatal(message) {
+/**
+ * 跳转到认证错误页面
+ * @param {String} message - 错误提示信息
+ */
+function fatal(message)
+{
   router.replace({ path: '/auth-center/error', query: { message } })
 }
 initialize()
 </script>
-
-<style scoped>
-.auth-flow {
-  min-height: 410px;
-}
-
-.panel-kicker {
-  margin: 0 0 8px;
-  color: var(--oauth-color-warning-dark-2);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-}
-
-h2 {
-  margin: 0;
-  color: var(--oauth-text-color-primary);
-  font-size: 25px;
-  font-weight: 650;
-  line-height: 1.4;
-}
-
-.panel-lead {
-  margin: 12px 0 18px;
-  color: var(--oauth-text-color-regular);
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.panel-lead strong {
-  color: var(--oauth-text-color-primary);
-}
-
-.security-impact {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 18px;
-  padding: 12px 14px;
-  color: var(--oauth-color-warning-dark-2);
-  background: var(--oauth-color-warning-light-9);
-  border: 1px solid var(--oauth-color-warning-light-7);
-  border-radius: 8px;
-}
-
-.security-impact > .el-icon {
-  flex: 0 0 auto;
-  margin-top: 2px;
-}
-
-.security-impact strong,
-.security-impact small {
-  display: block;
-}
-
-.security-impact strong {
-  color: var(--oauth-text-color-primary);
-  font-size: 12px;
-}
-
-.security-impact small {
-  margin-top: 3px;
-  color: var(--oauth-text-color-regular);
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.el-alert {
-  margin-bottom: 18px;
-}
-
-.password-meter {
-  width: 100%;
-  margin-top: 8px;
-}
-
-.meter-heading {
-  display: flex;
-  justify-content: space-between;
-  color: var(--oauth-text-color-secondary);
-  font-size: 11px;
-}
-
-.meter-heading strong.is-0 {
-  color: var(--oauth-text-color-secondary);
-}
-
-.meter-heading strong.is-1 {
-  color: var(--oauth-color-danger);
-}
-
-.meter-heading strong.is-2 {
-  color: var(--oauth-color-warning-dark-2);
-}
-
-.meter-heading strong.is-3 {
-  color: var(--oauth-color-success);
-}
-
-.meter-bars {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-  margin: 6px 0;
-}
-
-.meter-bars i {
-  height: 3px;
-  background: var(--oauth-fill-color-dark);
-  border-radius: 3px;
-}
-
-.meter-bars i.active {
-  background: var(--oauth-color-warning);
-}
-
-.meter-bars i:nth-child(3).active {
-  background: var(--oauth-color-success);
-}
-
-.password-meter > small {
-  color: var(--oauth-text-color-secondary);
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.primary-action {
-  width: 100%;
-  height: 44px;
-  margin-top: 10px;
-}
-</style>

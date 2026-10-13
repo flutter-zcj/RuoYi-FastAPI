@@ -1,11 +1,7 @@
 import subprocess
 from collections.abc import Callable
 
-import pytest
-
 from cli.exit_codes import DATABASE_ERROR, REDIS_ERROR, RUNTIME_ERROR, SUCCESS
-
-pytestmark = pytest.mark.contract
 
 
 def test_config_doctor_json_output_has_stable_contract(

@@ -7,6 +7,7 @@ from config.database import DataSourceRegistry
 from config.env import RedisConfig
 from module_admin.service.config_service import ConfigService
 from module_admin.service.dict_service import DictDataService
+from module_zgis_data.service.table_cache_service import TableCacheService
 from utils.log_util import logger
 
 
@@ -111,3 +112,20 @@ class RedisUtil:
         """
         async with DataSourceRegistry.session() as session:
             await ConfigService.init_cache_sys_config_services(session, redis)
+
+    @classmethod
+    async def init_zgis_table_cache(cls, redis: aioredis.Redis) -> None:
+        """
+        应用启动时缓存 zgis 配置表数据（cx_fld / cx_entity / cx_sqlexp / cx_sqlpro 等）
+
+        对应 Java: TableCacheApplicationRunner 启动时调用 TableCacheService.loadAllTablesToCache()。
+        加载失败仅记录日志，不抛出异常以免影响应用启动。
+
+        :param redis: redis对象
+        :return:
+        """
+        try:
+            async with DataSourceRegistry.session() as session:
+                await TableCacheService.load_all_tables_to_cache(session, redis)
+        except Exception as e:
+            logger.error(f'❌️ zgis 表缓存初始化失败，详细错误信息：{e}')

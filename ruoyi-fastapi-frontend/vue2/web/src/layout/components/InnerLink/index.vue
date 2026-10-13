@@ -1,21 +1,45 @@
+<style lang="scss" scoped></style>
+
 <template>
   <div
     :style="'height:' + height"
     v-loading="loading"
-    element-loading-text="正在加载页面，请稍候！"
-  >
+    element-loading-text="正在加载页面，请稍候！">
     <iframe
       :id="iframeId"
       style="width: 100%; height: 100%"
       :src="src"
-      frameborder="no"
-    ></iframe>
+      frameborder="no"></iframe>
   </div>
 </template>
 
 <script>
-export default {
-  props: {
+/**
+ * 组件名称：InnerLink
+ * 功能说明：内嵌 iframe 页面组件，根据高度与加载状态渲染外部链接
+ * 研发时间：2024/01/22
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ * @prop {String} src      - iframe 地址
+ * @prop {String} iframeId - iframe 元素 id
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2024/01/22     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
+export default
+{
+  props:
+  {
     src: {
       type: String,
       default: '/',
@@ -24,13 +48,17 @@ export default {
       type: String,
     },
   },
-  data() {
+
+  data()
+  {
     return {
       loading: false,
       height: document.documentElement.clientHeight - 94.5 + 'px;',
     }
   },
-  mounted() {
+
+  mounted()
+  {
     var _this = this
     const iframeId = ('#' + this.iframeId).replace(/\//g, '\\/')
     const iframe = document.querySelector(iframeId)

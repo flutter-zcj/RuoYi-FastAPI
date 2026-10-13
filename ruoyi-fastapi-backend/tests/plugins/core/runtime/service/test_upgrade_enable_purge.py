@@ -400,7 +400,7 @@ compatibility:
     assert result['manifestOk'] is False
     assert result['manifestIssues'][0]['kind'] == 'compatibility_unsatisfied'
     assert FakePluginService.upsert_called is False
-    assert gateway.lifecycle_uows == []
+    assert gateway.session_local.sessions[0].committed is False
 
 
 def test_plugin_runtime_upgrade_plugin_rejects_uninstalled_plugin(tmp_path: Path) -> None:
@@ -425,7 +425,7 @@ backend:
     assert result['ok'] is False
     assert result['message'] == '插件尚未安装，升级已中止'
     assert result['installed'] is False
-    assert gateway.lifecycle_uows == []
+    assert gateway.session_local.sessions[0].committed is False
     assert FakePluginService.marked_errors == [('demo', '插件尚未安装，升级已中止')]
 
 
@@ -458,7 +458,7 @@ backend:
     assert result['needsUpgrade'] is False
     assert result['actions'] == []
     assert FakePluginService.upsert_called is False
-    assert gateway.lifecycle_uows == []
+    assert gateway.session_local.sessions[0].committed is False
 
 
 def test_plugin_runtime_upgrade_plugin_skips_older_source_version(tmp_path: Path) -> None:
@@ -491,7 +491,7 @@ backend:
     assert result['installedVersion'] == '1.10.0'
     assert result['currentVersion'] == '1.2.0'
     assert FakePluginService.upsert_called is False
-    assert gateway.lifecycle_uows == []
+    assert gateway.session_local.sessions[0].committed is False
 
 
 def test_plugin_runtime_upgrade_plugin_persists_upgrade(tmp_path: Path) -> None:
@@ -663,7 +663,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
 """,
     )
     create_controller_dir(plugin_root)
@@ -698,7 +698,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
 """,
     )
     create_controller_dir(plugin_root)
@@ -734,7 +734,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
 """,
     )
     create_controller_dir(plugin_root)
@@ -847,7 +847,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
 """,
     )
     write_manifest(
@@ -862,7 +862,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
   plugins:
     - base
 """,
@@ -902,7 +902,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
 """,
     )
     write_manifest(
@@ -917,7 +917,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
   plugins:
     - base
 """,
@@ -957,7 +957,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
 """,
     )
     create_controller_dir(plugin_root)
@@ -990,7 +990,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
   plugins:
     - missing
 """,
@@ -1020,7 +1020,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
   plugins:
     - base
 """,
@@ -1053,7 +1053,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
   plugins:
     - base
 """,
@@ -1144,7 +1144,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
 """,
     )
     create_controller_dir(plugin_root)
@@ -1175,7 +1175,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
 """,
     )
     write_manifest(
@@ -1190,7 +1190,7 @@ frontend:
   menus: []
 dependencies:
   python: []
-  frontend: {}
+  npm: []
   plugins:
     - base
 """,

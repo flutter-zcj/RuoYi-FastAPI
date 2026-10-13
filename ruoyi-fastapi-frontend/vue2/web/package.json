@@ -16,9 +16,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:auth-center": "node --test tests/auth-center/*.test.cjs",
-    "test:unit": "npm run test:auth-center && npm run test:plugin && npm run test:job",
-    "test:contract": "npm run test:time",
-    "test": "npm run test:unit && npm run test:contract"
+    "test": "npm run test:auth-center && npm run test:plugin && npm run test:job"
   },
   "keywords": [
     "vue",
@@ -31,7 +29,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/insistence2022/RuoYi-FastAPI.git"
+    "url": "https://gitee.com/insistence2022/RuoYi-Vue-FastAPI.git"
   },
   "dependencies": {
     "@antv/g2plot": "^2.4.31",

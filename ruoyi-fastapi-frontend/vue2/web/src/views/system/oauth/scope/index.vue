@@ -1,115 +1,104 @@
+<style lang="scss" scoped>
+.result-count { font-size: 13px; color: var(--oauth-text-color-regular); }
+.result-count strong { font-size: 16px; color: var(--oauth-text-color-primary); }
+.permission-cell strong, .permission-cell code { display: block; }
+.permission-cell strong { color: var(--oauth-text-color-primary); }
+.permission-cell code { margin-top: 4px; font-size: 12px; color: var(--oauth-text-color-secondary); }
+.claim-summary, .policy-cell { display: flex; align-items: center; gap: 5px; }
+.policy-cell { flex-wrap: wrap; font-size: 12px; color: var(--oauth-text-color-regular); }
+.muted-value { font-size: 12px; color: var(--oauth-text-color-secondary); }
+.section-heading { margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid var(--oauth-border-color-lighter); }
+.section-heading h3 { margin: 0; font-size: 17px; font-weight: 650; color: var(--oauth-text-color-primary); }
+.section-heading p { margin: 7px 0 0; font-size: 13px; line-height: 1.6; color: var(--oauth-text-color-secondary); }
+.choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; width: 100%; }
+.choice-grid :deep(.el-radio) { width: 100%; height: auto; min-height: 68px; margin: 0; padding: 12px 14px; white-space: normal; }
+.choice-grid :deep(.el-radio__label), .choice-grid strong, .choice-grid small { display: block; }
+.choice-grid strong { color: var(--oauth-text-color-primary); }
+.choice-grid small { margin-top: 4px; font-size: 12px; color: var(--oauth-text-color-secondary); }
+.policy-options { display: flex; flex-wrap: wrap; gap: 18px; }
+.policy-options :deep(.el-checkbox) { margin-right: 0; }
+.option-code { float: right; margin-left: 20px; font-size: 12px; color: var(--oauth-text-color-secondary); }
+@media (max-width: 768px) {
+  .permission-form :deep(.el-form-item) { display: block; }
+  .permission-form :deep(.el-form-item__label) { width: auto !important; margin-bottom: 6px; }
+  .permission-form :deep(.el-form-item__content) { margin-left: 0 !important; }
+  .choice-grid { grid-template-columns: 1fr; }
+}
+</style>
+
 <template>
   <div class="oauth-route-page">
     <PageFrame
       section="接入管理"
       title="权限"
       description="用业务语言定义应用可以申请的身份信息和服务操作。"
-      filter-hint="协议代码作为次要信息展示，日常按名称查找即可"
-    >
+      filter-hint="协议代码作为次要信息展示，日常按名称查找即可">
       <template #actions>
         <el-button
           type="primary"
           icon="el-icon-plus"
           v-hasPermi="['system:oauthScope:add']"
-          @click="handleAdd"
-          >新增权限</el-button
-        >
+          @click="handleAdd">新增权限</el-button>
       </template>
 
       <template #filters>
         <el-form
-          v-show="showSearch"
           ref="queryRef"
           :model="queryParams"
           :inline="true"
-        >
-          <el-form-item
-            label="权限名称"
-            prop="scopeName"
-          >
+          v-show="showSearch">
+          <el-form-item label="权限名称" prop="scopeName">
             <el-input
               v-model="queryParams.scopeName"
               clearable
               placeholder="输入权限名称"
               style="width: 200px"
-              @keyup.enter.native="handleQuery"
-            />
+              @keyup.enter.native="handleQuery"/>
           </el-form-item>
-          <el-form-item
-            label="用途"
-            prop="scopeType"
-          >
+          <el-form-item label="用途" prop="scopeType">
             <el-select
               v-model="queryParams.scopeType"
               clearable
               placeholder="全部用途"
-              style="width: 200px"
-            >
-              <el-option
-                label="登录身份信息"
-                value="identity"
-              />
-              <el-option
-                label="服务访问"
-                value="resource"
-              />
+              style="width: 200px">
+              <el-option label="登录身份信息" value="identity"/>
+              <el-option label="服务访问" value="resource"/>
             </el-select>
           </el-form-item>
-          <el-form-item
-            label="状态"
-            prop="status"
-          >
+          <el-form-item label="状态" prop="status">
             <el-select
               v-model="queryParams.status"
               clearable
               placeholder="全部状态"
-              style="width: 200px"
-            >
-              <el-option
-                label="使用中"
-                value="0"
-              />
-              <el-option
-                label="已停用"
-                value="1"
-              />
+              style="width: 200px">
+              <el-option label="使用中" value="0"/>
+              <el-option label="已停用" value="1"/>
             </el-select>
           </el-form-item>
           <el-form-item>
             <el-button
               type="primary"
               icon="el-icon-search"
-              @click="handleQuery"
-              >查找</el-button
-            >
+              @click="handleQuery">查找</el-button>
             <el-button
               icon="el-icon-refresh"
-              @click="resetQuery"
-              >清空</el-button
-            >
+              @click="resetQuery">清空</el-button>
           </el-form-item>
         </el-form>
       </template>
 
       <template #toolbar>
-        <span class="result-count"
-          >已定义 <strong>{{ total }}</strong> 项权限</span
-        >
+        <span class="result-count">已定义 <strong>{{ total }}</strong> 项权限</span>
         <right-toolbar
           :showSearch.sync="showSearch"
-          @queryTable="getList"
-        />
+          @queryTable="getList"/>
       </template>
 
       <el-table
         v-loading="loading"
         :data="rows"
-        row-key="scopeCode"
-      >
-        <el-table-column
-          label="权限"
-          min-width="230"
-        >
+        row-key="scopeCode">
+        <el-table-column label="权限" min-width="230">
           <template #default="scope">
             <div class="permission-cell">
               <strong>{{ scope.row.scopeName }}</strong>
@@ -117,63 +106,38 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column
-          label="用途"
-          width="135"
-        >
+        <el-table-column label="用途" width="135">
           <template #default="scope">
             <el-tag
               :type="scope.row.scopeType === 'identity' ? 'primary' : 'success'"
-              effect="plain"
-            >
+              effect="plain">
               {{ scope.row.scopeType === 'identity' ? '登录身份信息' : '服务访问' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column
-          label="所属服务"
-          min-width="180"
-        >
+        <el-table-column label="所属服务" min-width="180">
           <template #default="scope">{{ resourceName(scope.row.resourceId) }}</template>
         </el-table-column>
-        <el-table-column
-          label="返回的用户信息"
-          min-width="230"
-        >
+        <el-table-column label="返回的用户信息" min-width="230">
           <template #default="scope">
             <div class="claim-summary">
               <el-tag
                 v-for="item in (scope.row.claims || []).slice(0, 3)"
                 :key="item"
                 size="small"
-                effect="plain"
-                >{{ claimLabel(item) }}</el-tag
-              >
-              <span
-                v-if="!(scope.row.claims || []).length"
-                class="muted-value"
-                >不返回额外信息</span
-              >
-              <span
-                v-else-if="scope.row.claims.length > 3"
-                class="muted-value"
-                >+{{ scope.row.claims.length - 3 }}</span
-              >
+                effect="plain">{{ claimLabel(item) }}</el-tag>
+              <span v-if="!(scope.row.claims || []).length" class="muted-value">不返回额外信息</span>
+              <span v-else-if="scope.row.claims.length > 3" class="muted-value">+{{ scope.row.claims.length - 3 }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column
-          label="用户确认"
-          width="145"
-        >
+        <el-table-column label="用户确认" width="145">
           <template #default="scope">
             <div class="policy-cell">
               <el-tag
                 v-if="scope.row.sensitive"
                 type="warning"
-                size="small"
-                >敏感权限</el-tag
-              >
+                size="small">敏感权限</el-tag>
               <span>{{ scope.row.consentRequired ? '需要确认' : '无需重复确认' }}</span>
             </div>
           </template>
@@ -181,8 +145,7 @@
         <el-table-column
           label="状态"
           width="105"
-          align="center"
-        >
+          align="center">
           <template #default="scope">
             <el-tag :type="scope.row.status === '0' ? 'success' : 'info'">{{
               scope.row.status === '0' ? '使用中' : '已停用'
@@ -193,43 +156,33 @@
           label="操作"
           width="180"
           fixed="right"
-          align="center"
-        >
+          align="center">
           <template #default="scope">
             <div class="table-actions">
               <el-button
                 type="text"
                 icon="el-icon-edit"
                 v-hasPermi="['system:oauthScope:edit']"
-                @click="handleUpdate(scope.row)"
-                >编辑</el-button
-              >
+                @click="handleUpdate(scope.row)">编辑</el-button>
               <el-dropdown
                 v-if="scope.row.scopeCode !== 'openid'"
                 trigger="click"
-                @command="(command) => handleRowCommand(command, scope.row)"
-              >
+                @command="(command) => handleRowCommand(command, scope.row)">
                 <el-button
                   type="text"
-                  icon="el-icon-arrow-down"
-                  >更多</el-button
-                >
+                  icon="el-icon-arrow-down">更多</el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item
                       v-if="scope.row.status !== '0'"
                       command="enable"
                       icon="el-icon-circle-check"
-                      v-hasPermi="['system:oauthScope:edit']"
-                      >重新启用</el-dropdown-item
-                    >
+                      v-hasPermi="['system:oauthScope:edit']">重新启用</el-dropdown-item>
                     <el-dropdown-item
                       v-else
                       command="disable"
                       icon="el-icon-circle-close"
-                      v-hasPermi="['system:oauthScope:remove']"
-                      >停用权限</el-dropdown-item
-                    >
+                      v-hasPermi="['system:oauthScope:remove']">停用权限</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -241,9 +194,7 @@
             <el-button
               type="primary"
               v-hasPermi="['system:oauthScope:add']"
-              @click="handleAdd"
-              >新增第一项权限</el-button
-            >
+              @click="handleAdd">新增第一项权限</el-button>
           </el-empty>
         </template>
       </el-table>
@@ -252,8 +203,7 @@
         :page.sync="queryParams.pageNum"
         :limit.sync="queryParams.pageSize"
         :total="total"
-        @pagination="getList"
-      />
+        @pagination="getList"/>
     </PageFrame>
 
     <el-dialog
@@ -262,115 +212,79 @@
       :title="form.persisted ? '编辑权限' : '新增权限'"
       width="min(780px, calc(100vw - 48px))"
       append-to-body
-      :close-on-click-modal="false"
-    >
+      :close-on-click-modal="false">
       <el-form
+        class="permission-form"
         ref="formRef"
         :model="form"
         :rules="rules"
-        label-width="160px"
-        class="permission-form"
-      >
+        label-width="160px">
         <div class="section-heading">
           <h3>权限含义</h3>
           <p>先选择这项权限用于登录信息还是服务访问，再说明它可以返回什么。</p>
         </div>
         <el-form-item prop="scopeType">
-          <template #label
-            ><FieldLabel
-              label="权限用途"
-              help="登录身份信息用于返回用户资料；服务访问用于允许应用调用某个服务。"
-          /></template>
+          <template #label><FieldLabel label="权限用途" help="登录身份信息用于返回用户资料；服务访问用于允许应用调用某个服务。"/></template>
           <el-radio-group
             v-model="form.scopeType"
             class="choice-grid"
-            :disabled="form.scopeCode === 'openid'"
-          >
+            :disabled="form.scopeCode === 'openid'">
             <el-radio
               label="identity"
-              border
-            >
+              border>
               <strong>登录身份信息</strong>
               <small>例如姓名、邮箱和角色</small>
             </el-radio>
             <el-radio
               label="resource"
-              border
-            >
+              border>
               <strong>服务访问</strong>
               <small>例如查看订单或修改库存</small>
             </el-radio>
           </el-radio-group>
         </el-form-item>
         <el-row :gutter="18">
-          <el-col
-            :xs="24"
-            :sm="12"
-          >
+          <el-col :xs="24" :sm="12">
             <el-form-item prop="scopeName">
-              <template #label
-                ><FieldLabel
-                  label="显示名称"
-                  help="用户授权和后台列表中看到的名称，应直接说明允许做什么。"
-              /></template>
+              <template #label><FieldLabel label="显示名称" help="用户授权和后台列表中看到的名称，应直接说明允许做什么。"/></template>
               <el-input
                 v-model="form.scopeName"
                 placeholder="例如：查看订单"
-                style="width: 100%"
-              />
+                style="width: 100%"/>
             </el-form-item>
           </el-col>
-          <el-col
-            :xs="24"
-            :sm="12"
-          >
+          <el-col :xs="24" :sm="12">
             <el-form-item prop="scopeCode">
-              <template #label
-                ><FieldLabel
-                  label="权限代码"
-                  help="应用在登录请求中使用的协议代码，保存后不能修改。"
-              /></template>
+              <template #label><FieldLabel label="权限代码" help="应用在登录请求中使用的协议代码，保存后不能修改。"/></template>
               <el-input
                 v-model="form.scopeCode"
                 :disabled="form.persisted"
                 placeholder="例如：orders.read"
-                style="width: 100%"
-              />
+                style="width: 100%"/>
             </el-form-item>
           </el-col>
         </el-row>
         <el-form-item
           v-if="form.scopeType === 'resource'"
-          prop="resourceId"
-        >
-          <template #label
-            ><FieldLabel
-              label="所属服务"
-              help="选择应用获得这项权限后可以访问的服务。"
-          /></template>
+          prop="resourceId">
+          <template #label><FieldLabel label="所属服务" help="选择应用获得这项权限后可以访问的服务。"/></template>
           <el-select
             v-model="form.resourceId"
             filterable
             placeholder="选择服务"
-            style="width: 100%"
-          >
+            style="width: 100%">
             <el-option
               v-for="item in resourceOptions"
               :key="item.resourceId"
               :label="item.resourceName"
-              :value="item.resourceId"
-            >
+              :value="item.resourceId">
               <span>{{ item.resourceName }}</span>
               <code class="option-code">{{ item.resourceId }}</code>
             </el-option>
           </el-select>
         </el-form-item>
         <el-form-item>
-          <template #label
-            ><FieldLabel
-              label="返回用户信息"
-              help="应用获得这项权限后可以收到的用户信息，可多选。"
-          /></template>
+          <template #label><FieldLabel label="返回用户信息" help="应用获得这项权限后可以收到的用户信息，可多选。"/></template>
           <el-select
             v-model="form.claims"
             multiple
@@ -378,41 +292,30 @@
             allow-create
             default-first-option
             placeholder="选择或输入用户字段"
-            style="width: 100%"
-          >
+            style="width: 100%">
             <el-option
               v-for="item in claimOptions"
               :key="item.value"
               :label="item.label"
-              :value="item.value"
-            />
+              :value="item.value"/>
           </el-select>
         </el-form-item>
         <el-form-item>
-          <template #label
-            ><FieldLabel
-              label="用户确认"
-              help="敏感权限应要求用户明确确认，并在授权页突出展示。"
-          /></template>
+          <template #label><FieldLabel label="用户确认" help="敏感权限应要求用户明确确认，并在授权页突出展示。"/></template>
           <div class="policy-options">
             <el-checkbox v-model="form.consentRequired">使用前让用户确认</el-checkbox>
             <el-checkbox v-model="form.sensitive">标记为敏感权限</el-checkbox>
           </div>
         </el-form-item>
         <el-form-item>
-          <template #label
-            ><FieldLabel
-              label="备注"
-              help="仅供管理员记录，不会显示给外部应用。"
-          /></template>
+          <template #label><FieldLabel label="备注" help="仅供管理员记录，不会显示给外部应用。"/></template>
           <el-input
             v-model="form.remark"
             type="textarea"
             :rows="3"
             maxlength="500"
             show-word-limit
-            style="width: 100%"
-          />
+            style="width: 100%"/>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -420,16 +323,62 @@
         <el-button
           type="primary"
           :loading="saving"
-          @click="submitForm"
-          >保存权限</el-button
-        >
+          @click="submitForm">保存权限</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
-export default { name: 'OAuthScope' }
+/**
+ * 组件名称：OAuthScope
+ * 功能说明：OAuth 权限管理页面，用业务语言定义应用可申请的身份信息与服务操作
+ * 研发时间：2026/10/01
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ * @data {Array}   rows            - 权限列表数据
+ * @data {Number}  total           - 权限总条数
+ * @data {Boolean} loading         - 列表加载状态
+ * @data {Boolean} saving          - 保存提交中状态
+ * @data {Boolean} showSearch      - 是否显示搜索条件
+ * @data {Boolean} open            - 表单对话框是否可见
+ * @data {Array}   resourceOptions - 可选资源服务候选项
+ * @data {Object}  queryParams     - 查询参数
+ * @data {Object}  form            - 权限表单数据
+ * @data {Array}   claimOptions    - 返回用户信息候选项
+ * @data {Object}  rules           - 表单校验规则
+ *
+ * 事件说明：
+ * @event emptyForm          - 创建权限表单默认值
+ * @event resetForm          - 重置权限表单
+ * @event getList            - 查询权限列表
+ * @event loadResourceOptions - 加载可选资源服务
+ * @event handleQuery        - 搜索按钮操作
+ * @event resetQuery         - 重置按钮操作
+ * @event handleAdd          - 新增按钮操作
+ * @event handleUpdate       - 修改按钮操作
+ * @event submitForm         - 校验并保存权限配置
+ * @event changeStatus       - 修改权限状态
+ * @event handleDelete       - 删除按钮操作
+ * @event handleRowCommand   - 处理权限行操作
+ * @event resourceName       - 获取权限关联的资源服务名称
+ * @event claimLabel         - 获取声明字段的展示名称
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/01     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
+export default
+{
+  name: 'OAuthScope'
+}
 </script>
 
 <script setup>
@@ -476,8 +425,12 @@ const rules = {
   resourceId: [{ required: true, message: '请选择这项权限所属的服务', trigger: 'change' }],
 }
 
-/** 创建权限表单默认值 */
-function emptyForm() {
+/**
+ * 创建权限表单默认值
+ * @returns {Object} 权限表单默认数据
+ */
+function emptyForm()
+{
   return {
     persisted: false,
     scopeCode: '',
@@ -492,14 +445,20 @@ function emptyForm() {
   }
 }
 
-/** 重置权限表单 */
-function resetForm() {
+/**
+ * 重置权限表单
+ */
+function resetForm()
+{
   Object.assign(form, emptyForm())
   proxy.resetForm('formRef')
 }
 
-/** 查询权限列表 */
-async function getList() {
+/**
+ * 查询权限列表
+ */
+async function getList()
+{
   loading.value = true
   try {
     const response = await listOAuthScopes(queryParams)
@@ -510,8 +469,11 @@ async function getList() {
   }
 }
 
-/** 加载可选资源服务 */
-async function loadResourceOptions() {
+/**
+ * 加载可选资源服务
+ */
+async function loadResourceOptions()
+{
   const response = await listOAuthResources({
     pageNum: 1,
     pageSize: 200,
@@ -520,27 +482,40 @@ async function loadResourceOptions() {
   resourceOptions.value = response.rows || []
 }
 
-/** 搜索按钮操作 */
-function handleQuery() {
+/**
+ * 搜索按钮操作
+ */
+function handleQuery()
+{
   queryParams.pageNum = 1
   getList()
 }
 
-/** 重置按钮操作 */
-function resetQuery() {
+/**
+ * 重置按钮操作
+ */
+function resetQuery()
+{
   proxy.resetForm('queryRef')
   handleQuery()
 }
 
-/** 新增按钮操作 */
-function handleAdd() {
+/**
+ * 新增按钮操作
+ */
+function handleAdd()
+{
   resetForm()
   loadResourceOptions().catch(() => {})
   open.value = true
 }
 
-/** 修改按钮操作 */
-async function handleUpdate(row) {
+/**
+ * 修改按钮操作
+ * @param {Object} row - 权限行数据
+ */
+async function handleUpdate(row)
+{
   resetForm()
   const [response] = await Promise.all([
     getOAuthScope(row.scopeCode),
@@ -553,8 +528,11 @@ async function handleUpdate(row) {
   open.value = true
 }
 
-/** 校验并保存权限配置 */
-async function submitForm() {
+/**
+ * 校验并保存权限配置
+ */
+async function submitForm()
+{
   await proxy.$refs.formRef.validate()
   saving.value = true
   try {
@@ -572,8 +550,13 @@ async function submitForm() {
   }
 }
 
-/** 修改权限状态 */
-async function changeStatus(row, status) {
+/**
+ * 修改权限状态
+ * @param {Object} row - 权限行数据
+ * @param {String} status - 目标状态
+ */
+async function changeStatus(row, status)
+{
   try {
     await proxy.$modal.confirm(`${status === '0' ? '启用' : '停用'} Scope “${row.scopeCode}”？`)
     await changeOAuthScopeStatus({ scopeCode: row.scopeCode, status })
@@ -583,16 +566,25 @@ async function changeStatus(row, status) {
   }
 }
 
-/** 删除按钮操作 */
-async function handleDelete(row) {
+/**
+ * 删除按钮操作
+ * @param {Object} row - 权限行数据
+ */
+async function handleDelete(row)
+{
   await proxy.$modal.confirm(`停用权限“${row.scopeName}”后，应用不能再申请这项权限，是否继续？`)
   await deleteOAuthScopes(row.scopeCode)
   proxy.$modal.msgSuccess('权限已停用')
   await getList()
 }
 
-/** 处理权限行操作 */
-function handleRowCommand(command, row) {
+/**
+ * 处理权限行操作
+ * @param {String} command - 操作指令
+ * @param {Object} row - 权限行数据
+ */
+function handleRowCommand(command, row)
+{
   if (command === 'enable') {
     return changeStatus(row, '0')
   }
@@ -601,8 +593,13 @@ function handleRowCommand(command, row) {
   }
 }
 
-/** 获取权限关联的资源服务名称 */
-function resourceName(resourceId) {
+/**
+ * 获取权限关联的资源服务名称
+ * @param {String} resourceId - 资源服务标识
+ * @returns {String} 资源服务名称
+ */
+function resourceName(resourceId)
+{
   if (!resourceId) {
     return '统一身份信息'
   }
@@ -611,143 +608,15 @@ function resourceName(resourceId) {
   )
 }
 
-/** 获取声明字段的展示名称 */
-function claimLabel(value) {
+/**
+ * 获取声明字段的展示名称
+ * @param {String} value - 字段值
+ * @returns {String} 字段展示名称
+ */
+function claimLabel(value)
+{
   return claimOptions.find((item) => item.value === value)?.label?.replace(/（.*）$/, '') || value
 }
 
 Promise.all([getList(), loadResourceOptions().catch(() => {})])
 </script>
-
-<style scoped>
-.result-count {
-  color: var(--oauth-text-color-regular);
-  font-size: 13px;
-}
-
-.result-count strong {
-  color: var(--oauth-text-color-primary);
-  font-size: 16px;
-}
-
-.permission-cell strong,
-.permission-cell code {
-  display: block;
-}
-
-.permission-cell strong {
-  color: var(--oauth-text-color-primary);
-}
-
-.permission-cell code {
-  margin-top: 4px;
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-.claim-summary,
-.policy-cell {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.policy-cell {
-  flex-wrap: wrap;
-  color: var(--oauth-text-color-regular);
-  font-size: 12px;
-}
-
-.muted-value {
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-.section-heading {
-  margin-bottom: 22px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--oauth-border-color-lighter);
-}
-
-.section-heading h3 {
-  margin: 0;
-  color: var(--oauth-text-color-primary);
-  font-size: 17px;
-  font-weight: 650;
-}
-
-.section-heading p {
-  margin: 7px 0 0;
-  color: var(--oauth-text-color-secondary);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.choice-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  width: 100%;
-}
-
-.choice-grid :deep(.el-radio) {
-  width: 100%;
-  height: auto;
-  min-height: 68px;
-  margin: 0;
-  padding: 12px 14px;
-  white-space: normal;
-}
-
-.choice-grid :deep(.el-radio__label),
-.choice-grid strong,
-.choice-grid small {
-  display: block;
-}
-
-.choice-grid strong {
-  color: var(--oauth-text-color-primary);
-}
-
-.choice-grid small {
-  margin-top: 4px;
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-.policy-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-}
-
-.policy-options :deep(.el-checkbox) {
-  margin-right: 0;
-}
-
-.option-code {
-  float: right;
-  margin-left: 20px;
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-@media (max-width: 768px) {
-  .permission-form :deep(.el-form-item) {
-    display: block;
-  }
-
-  .permission-form :deep(.el-form-item__label) {
-    width: auto !important;
-    margin-bottom: 6px;
-  }
-
-  .permission-form :deep(.el-form-item__content) {
-    margin-left: 0 !important;
-  }
-
-  .choice-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

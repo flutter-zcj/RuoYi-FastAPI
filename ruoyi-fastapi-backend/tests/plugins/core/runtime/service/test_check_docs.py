@@ -350,10 +350,8 @@ permissions:
 dependencies:
   python:
     - requests>=2.0.0
-  frontend:
-    vue3:
-      npm:
-        - lodash@^4.17.0
+  npm:
+    - lodash@^4.17.0
   plugins:
     - base>=1.0.0
 config:

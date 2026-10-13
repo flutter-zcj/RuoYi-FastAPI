@@ -1,3 +1,6 @@
+<style lang="scss" scoped>
+</style>
+
 <template>
   <!-- 授权用户 -->
   <el-dialog
@@ -5,102 +8,75 @@
     :visible.sync="visible"
     width="800px"
     top="5vh"
-    append-to-body
-  >
+    append-to-body>
     <el-form
-      :model="queryParams"
       ref="queryForm"
+      :model="queryParams"
       size="small"
-      :inline="true"
-    >
-      <el-form-item
-        label="用户名称"
-        prop="userName"
-      >
+      :inline="true">
+      <el-form-item label="用户名称" prop="userName">
         <el-input
           v-model="queryParams.userName"
           placeholder="请输入用户名称"
           clearable
-          @keyup.enter.native="handleQuery"
-        />
+          @keyup.enter.native="handleQuery"/>
       </el-form-item>
-      <el-form-item
-        label="手机号码"
-        prop="phonenumber"
-      >
+      <el-form-item label="手机号码" prop="phonenumber">
         <el-input
           v-model="queryParams.phonenumber"
           placeholder="请输入手机号码"
           clearable
-          @keyup.enter.native="handleQuery"
-        />
+          @keyup.enter.native="handleQuery"/>
       </el-form-item>
       <el-form-item>
         <el-button
           type="primary"
           icon="el-icon-search"
           size="mini"
-          @click="handleQuery"
-          >搜索</el-button
-        >
+          @click="handleQuery">搜索</el-button>
         <el-button
           icon="el-icon-refresh"
           size="mini"
-          @click="resetQuery"
-          >重置</el-button
-        >
+          @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
     <el-row>
       <el-table
-        @row-click="clickRow"
         ref="table"
         :data="userList"
-        @selection-change="handleSelectionChange"
         height="260px"
-      >
-        <el-table-column
-          type="selection"
-          width="55"
-        ></el-table-column>
+        @row-click="clickRow"
+        @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="55"></el-table-column>
         <el-table-column
           label="用户名称"
           prop="userName"
-          :show-overflow-tooltip="true"
-        />
+          :show-overflow-tooltip="true"/>
         <el-table-column
           label="用户昵称"
           prop="nickName"
-          :show-overflow-tooltip="true"
-        />
+          :show-overflow-tooltip="true"/>
         <el-table-column
           label="邮箱"
           prop="email"
-          :show-overflow-tooltip="true"
-        />
+          :show-overflow-tooltip="true"/>
         <el-table-column
           label="手机"
           prop="phonenumber"
-          :show-overflow-tooltip="true"
-        />
+          :show-overflow-tooltip="true"/>
         <el-table-column
           label="状态"
           align="center"
-          prop="status"
-        >
+          prop="status">
           <template slot-scope="scope">
-            <dict-tag
-              :options="dict.type.sys_normal_disable"
-              :value="scope.row.status"
-            />
+            <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status" />
           </template>
         </el-table-column>
         <el-table-column
           label="创建时间"
           align="center"
           prop="createTime"
-          width="180"
-        >
+          width="180">
           <template slot-scope="scope">
             <span>{{ parseTime(scope.row.createTime) }}</span>
           </template>
@@ -111,34 +87,51 @@
         :total="total"
         :page.sync="queryParams.pageNum"
         :limit.sync="queryParams.pageSize"
-        @pagination="getList"
-      />
+        @pagination="getList"/>
     </el-row>
-    <div
-      slot="footer"
-      class="dialog-footer"
-    >
-      <el-button
-        type="primary"
-        @click="handleSelectUser"
-        >确 定</el-button
-      >
+    <div class="dialog-footer" slot="footer">
+      <el-button type="primary" @click="handleSelectUser">确 定</el-button>
       <el-button @click="visible = false">取 消</el-button>
     </div>
   </el-dialog>
 </template>
 
 <script>
+/**
+ * 组件名称：SelectUser
+ * 功能说明：选择用户弹窗，用于角色分配未授权用户
+ * 研发时间：2024/01/22
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ * @prop {Number|String} roleId - 角色编号
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ * @event ok - 授权成功后抛出
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import { unallocatedUserList, authUserSelectAll } from '@/api/system/role'
-export default {
+
+export default
+{
   dicts: ['sys_normal_disable'],
-  props: {
+
+  props:
+  {
     // 角色编号
-    roleId: {
-      type: [Number, String],
-    },
+    roleId: { type: [Number, String] }
   },
-  data() {
+
+  data()
+  {
     return {
       // 遮罩层
       visible: false,
@@ -158,46 +151,84 @@ export default {
       },
     }
   },
-  methods: {
+
+  methods:
+  {
     // 显示弹框
-    show() {
+    /**
+     * 显示选择用户弹框
+     */
+    show()
+    {
       this.queryParams.roleId = this.roleId
       this.getList()
       this.visible = true
     },
-    clickRow(row) {
+
+    /**
+     * 单击选中行数据
+     * @param {Object} row - 行数据
+     */
+    clickRow(row)
+    {
       this.$refs.table.toggleRowSelection(row)
     },
+
     // 多选框选中数据
-    handleSelectionChange(selection) {
+    /**
+     * 多选框选中数据
+     * @param {Array} selection - 选中的行数据
+     */
+    handleSelectionChange(selection)
+    {
       this.userIds = selection.map((item) => item.userId)
     },
+
     // 查询表数据
-    getList() {
-      unallocatedUserList(this.queryParams).then((res) => {
+    /**
+     * 查询未授权用户列表
+     */
+    getList()
+    {
+      unallocatedUserList(this.queryParams).then((res) =>
+      {
         this.userList = res.rows
         this.total = res.total
       })
     },
-    /** 搜索按钮操作 */
-    handleQuery() {
+
+    /**
+     * 搜索按钮操作
+     */
+    handleQuery()
+    {
       this.queryParams.pageNum = 1
       this.getList()
     },
-    /** 重置按钮操作 */
-    resetQuery() {
+
+    /**
+     * 重置按钮操作
+     */
+    resetQuery()
+    {
       this.resetForm('queryForm')
       this.handleQuery()
     },
-    /** 选择授权用户操作 */
-    handleSelectUser() {
+
+    /**
+     * 选择授权用户操作
+     */
+    handleSelectUser()
+    {
       const roleId = this.queryParams.roleId
       const userIds = this.userIds.join(',')
-      if (userIds == '') {
+      if (userIds == '')
+      {
         this.$modal.msgError('请选择要分配的用户')
         return
       }
-      authUserSelectAll({ roleId: roleId, userIds: userIds }).then((res) => {
+      authUserSelectAll({ roleId: roleId, userIds: userIds }).then((res) =>
+      {
         this.$modal.msgSuccess(res.msg)
         this.visible = false
         this.$emit('ok')

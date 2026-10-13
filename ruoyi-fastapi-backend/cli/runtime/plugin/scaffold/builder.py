@@ -1,15 +1,12 @@
-from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from plugins.core.frontend import select_frontend_root
 from plugins.core.utils import validate_plugin_id_value
 
 from .backend import PluginBackendScaffoldTemplateBuilder
-from .frontend import FrontendFramework, PluginFrontendFrameworkResolver, PluginFrontendScaffoldTemplateBuilder
+from .frontend import FrontendVersion, PluginFrontendScaffoldTemplateBuilder, PluginFrontendVersionResolver
 from .options import PluginScaffoldOptions, PluginScaffoldTemplateResolver
 from .payload import PluginScaffoldPayloadBuilder, PluginScaffoldPlanPayload
-from .v2 import PluginV2ScaffoldBuilder
 
 
 class PluginScaffoldBuilder:
@@ -19,23 +16,15 @@ class PluginScaffoldBuilder:
     使用 Builder 模式生成后端与前端插件模板文件计划，并在确认无冲突后落地。
     """
 
-    def __init__(
-        self,
-        backend_root: Path,
-        frontend_root: Path,
-        frontend_framework_resolver: Callable[[Path], str] | None = None,
-    ) -> None:
+    def __init__(self, backend_root: Path, frontend_root: Path) -> None:
         """
         初始化插件模板构建器。
 
         :param backend_root: 后端项目根目录
-        :param frontend_root: 前端工程根目录或包含框架分类的聚合目录
-        :param frontend_framework_resolver: 宿主框架解析函数，保留运行环境中选择的框架
-        :return: None
+        :param frontend_root: 前端项目根目录
         """
         self.backend_root = backend_root
-        self.frontend_root = select_frontend_root(frontend_root)
-        self.frontend_framework_resolver = frontend_framework_resolver
+        self.frontend_root = frontend_root
 
     def build_plan(
         self,
@@ -49,7 +38,7 @@ class PluginScaffoldBuilder:
         job: bool = True,
         config: bool = True,
         test: bool = True,
-        frontend_framework: str = PluginFrontendFrameworkResolver.AUTO,
+        frontend_version: str = PluginFrontendVersionResolver.AUTO,
     ) -> dict[str, Any]:
         """
         构建插件模板写入计划。
@@ -63,23 +52,10 @@ class PluginScaffoldBuilder:
         :param job: 是否创建定时任务示例
         :param config: 是否创建配置项示例
         :param test: 是否创建测试样例
-        :param frontend_framework: 目标前端框架标识，auto 表示自动识别；源码模板仅支持 vue2、vue3
+        :param frontend_version: 前端 Vue 版本，支持 auto、vue2、vue3
         :return: 插件模板写入计划
         """
         self._validate_plugin_id(plugin_id)
-        frontend_root = select_frontend_root(self.frontend_root, frontend_framework)
-        normalized_template = (template or PluginScaffoldTemplateResolver.DEFAULT_TEMPLATE).strip()
-        if normalized_template in PluginScaffoldTemplateResolver.V2_TEMPLATES:
-            return PluginV2ScaffoldBuilder(
-                self.backend_root, frontend_root, frontend_framework_resolver=self.frontend_framework_resolver
-            ).build_plan(
-                plugin_id,
-                template=normalized_template,
-                backend=backend,
-                frontend=frontend,
-                test=test,
-                frontend_framework=frontend_framework,
-            )
         options = self._merge_options(
             PluginScaffoldTemplateResolver.resolve(template),
             backend=backend,
@@ -97,8 +73,8 @@ class PluginScaffoldBuilder:
         target_dirs = []
         effective_backend_test = options.test and options.backend
         effective_frontend_test = options.test and options.frontend
-        resolved_frontend_framework = (
-            self._resolve_frontend_framework(frontend_root, frontend_framework) if options.frontend else None
+        resolved_frontend_version = (
+            PluginFrontendVersionResolver.resolve(self.frontend_root, frontend_version) if options.frontend else None
         )
         if options.backend:
             backend_plugin_root = self.backend_root / 'plugins' / plugin_id
@@ -107,17 +83,17 @@ class PluginScaffoldBuilder:
                 target_dirs.append(str(self.backend_root / 'tests' / 'plugins' / plugin_id))
             files.extend(self._build_backend_files(plugin_id, backend_plugin_root, options))
         if options.frontend:
-            assert resolved_frontend_framework is not None
-            frontend_plugin_root = frontend_root / 'plugins' / plugin_id
+            assert resolved_frontend_version is not None
+            frontend_plugin_root = self.frontend_root / 'plugins' / plugin_id
             target_dirs.append(str(frontend_plugin_root))
             if effective_frontend_test:
-                target_dirs.append(str(frontend_root / 'tests' / 'plugins' / plugin_id))
+                target_dirs.append(str(self.frontend_root / 'tests' / 'plugins' / plugin_id))
             files.extend(
                 self._build_frontend_files(
                     plugin_id,
                     frontend_plugin_root,
                     options,
-                    frontend_framework=resolved_frontend_framework,
+                    frontend_version=resolved_frontend_version,
                 )
             )
 
@@ -135,7 +111,7 @@ class PluginScaffoldBuilder:
             test=effective_backend_test or effective_frontend_test,
             backend_test=effective_backend_test,
             frontend_test=effective_frontend_test,
-            frontend_framework=resolved_frontend_framework,
+            frontend_version=resolved_frontend_version,
             target_dirs=target_dirs,
             files=files,
             conflicts=conflicts,
@@ -143,18 +119,6 @@ class PluginScaffoldBuilder:
 
     build_conflict_payload = staticmethod(PluginScaffoldPayloadBuilder.build_conflict_payload)
     build_success_payload = staticmethod(PluginScaffoldPayloadBuilder.build_success_payload)
-
-    def _resolve_frontend_framework(self, frontend_root: Path, requested_framework: str) -> str:
-        """
-        优先使用命令显式框架，其次沿用宿主运行环境的框架选择。
-
-        :param frontend_root: 已选中的前端工程目录
-        :param requested_framework: 命令指定的框架标识
-        :return: 已解析的前端框架标识
-        """
-        if (requested_framework or 'auto').strip().lower() == 'auto' and self.frontend_framework_resolver is not None:
-            return self.frontend_framework_resolver(frontend_root)
-        return PluginFrontendFrameworkResolver.resolve(frontend_root, requested_framework)
 
     @classmethod
     def _validate_plugin_id(cls, plugin_id: str) -> None:
@@ -276,7 +240,7 @@ class PluginScaffoldBuilder:
         plugin_root: Path,
         options: PluginScaffoldOptions,
         *,
-        frontend_framework: FrontendFramework,
+        frontend_version: FrontendVersion,
     ) -> list[tuple[Path, str]]:
         """
         构建前端插件模板文件。
@@ -284,7 +248,7 @@ class PluginScaffoldBuilder:
         :param plugin_id: 插件ID
         :param plugin_root: 前端插件根目录
         :param options: 插件模板生成选项
-        :param frontend_framework: 已解析的前端框架标识
+        :param frontend_version: 已解析的前端 Vue 版本
         :return: 文件路径和内容列表
         """
         files = [
@@ -296,20 +260,20 @@ class PluginScaffoldBuilder:
             ),
             (
                 plugin_root / 'views' / 'index.vue',
-                PluginFrontendScaffoldTemplateBuilder.build_crud_view(plugin_id, frontend_framework)
+                PluginFrontendScaffoldTemplateBuilder.build_crud_view(plugin_id, frontend_version)
                 if options.crud
-                else PluginFrontendScaffoldTemplateBuilder.build_view(plugin_id, frontend_framework),
+                else PluginFrontendScaffoldTemplateBuilder.build_view(plugin_id, frontend_version),
             ),
             (
                 plugin_root / 'README.md',
-                PluginFrontendScaffoldTemplateBuilder.build_readme(plugin_id, frontend_framework),
+                PluginFrontendScaffoldTemplateBuilder.build_readme(plugin_id, frontend_version),
             ),
         ]
         if options.test:
             files.append(
                 (
-                    plugin_root.parents[1] / 'tests' / 'plugins' / plugin_id / 'pluginView.test.js',
-                    PluginFrontendScaffoldTemplateBuilder.build_test(plugin_id, frontend_framework),
+                    self.frontend_root / 'tests' / 'plugins' / plugin_id / 'pluginView.test.js',
+                    PluginFrontendScaffoldTemplateBuilder.build_test(plugin_id, frontend_version),
                 )
             )
 

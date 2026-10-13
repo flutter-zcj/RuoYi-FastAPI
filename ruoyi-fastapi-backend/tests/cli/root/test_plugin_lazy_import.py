@@ -4,9 +4,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
-pytestmark = pytest.mark.contract
 BACKEND_ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -23,7 +20,6 @@ def inspect_cold_import(module_name: str, observed_modules: tuple[str, ...]) -> 
         check=True,
         capture_output=True,
         text=True,
-        timeout=30,
     )
     return json.loads(completed.stdout)
 
@@ -136,7 +132,6 @@ print(json.dumps({'initial': initial, 'afterController': after_controller, 'afte
         check=True,
         capture_output=True,
         text=True,
-        timeout=30,
     )
     observed = json.loads(completed.stdout)
 

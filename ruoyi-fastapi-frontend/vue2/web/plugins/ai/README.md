@@ -1,6 +1,6 @@
 # AI 管理前端插件
 
-AI 管理前端插件提供 Vue 2 版模型管理页面和 AI 对话页面。本工程位于 `ruoyi-fastapi-frontend/vue2/web`，与 Vue3 Web 共用后端 `ruoyi-fastapi-backend/plugins/ai/plugin.yaml`，由此清单统一声明菜单、组件路径和 npm 依赖。
+AI 管理前端插件提供 Vue 2 版模型管理页面和 AI 对话页面。页面源码放在前端插件目录下，由后端插件清单 `plugins/ai/plugin.yaml` 声明菜单、组件路径和 npm 依赖。
 
 ## 页面
 
@@ -49,7 +49,7 @@ plugins/ai/
 
 ## 依赖
 
-前端依赖按框架完整声明在共用后端 `plugin.yaml` 的 `dependencies.frontend.<framework>.npm/npmDev` 中，本工程使用 `vue2` 分类，包括 Markdown 渲染、代码高亮、图表和 Monaco 编辑器相关包。检查与安装只读取当前框架分类，不跨分类合并；未声明该分类时没有 npm 依赖，旧顶层 `dependencies.npm/npmDev` 会被清单校验拒绝。从后端执行依赖检查或安装时，先设置 `RUOYI_PLUGIN_FRONTEND_FRAMEWORK=vue2`，或将 `RUOYI_PLUGIN_FRONTEND_ROOT` 指向本 Web 工程。
+前端运行依赖在后端 `plugin.yaml` 中声明，包括 Markdown 渲染、代码高亮、图表和 Monaco 编辑器相关包。插件检查和依赖安装流程会读取这些声明。
 
 涉及的主要依赖：
 
@@ -75,8 +75,6 @@ plugins/ai/
 修改插件路径解析或页面后，建议执行插件测试和项目构建验证：
 
 ```bash
-# 从仓库根目录进入本工程
-cd ruoyi-fastapi-frontend/vue2/web
 npm run test:plugin
 npm run build:prod
 ```

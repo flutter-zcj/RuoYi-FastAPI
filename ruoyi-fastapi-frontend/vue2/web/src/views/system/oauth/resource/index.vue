@@ -1,103 +1,90 @@
+<style lang="scss" scoped>
+.result-count { font-size: 13px; color: var(--oauth-text-color-regular); }
+.result-count strong { font-size: 16px; color: var(--oauth-text-color-primary); }
+.entity-cell { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.service-mark { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; background: var(--oauth-color-success-light-9); border: 1px solid var(--oauth-color-success-light-7); color: var(--oauth-color-success); border-radius: 8px; }
+.entity-copy { min-width: 0; }
+.entity-copy strong, .entity-copy code { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entity-copy strong { color: var(--oauth-text-color-primary); }
+.entity-copy code, .audience-value { font-size: 12px; color: var(--oauth-text-color-secondary); }
+.entity-copy code { margin-top: 4px; }
+.tag-summary { display: flex; align-items: center; gap: 5px; }
+.muted-value { font-size: 12px; color: var(--oauth-text-color-secondary); }
+.form-section + .form-section { margin-top: 6px; padding-top: 22px; border-top: 1px solid var(--oauth-border-color-lighter); }
+.section-heading { margin-bottom: 22px; }
+.section-heading h3 { margin: 0; font-size: 17px; font-weight: 650; color: var(--oauth-text-color-primary); }
+.section-heading p { margin: 7px 0 0; font-size: 13px; line-height: 1.6; color: var(--oauth-text-color-secondary); }
+.resource-form :deep(.el-input-number) { flex: 1; width: auto !important; }
+.duration-field :deep(.el-form-item__content) { display: flex; align-items: center; }
+.input-unit { flex: 0 0 auto; margin-left: 8px; color: var(--oauth-text-color-secondary); }
+@media (max-width: 768px) {
+  .resource-form :deep(.el-form-item) { display: block; }
+  .resource-form :deep(.el-form-item__label) { width: auto !important; margin-bottom: 6px; }
+  .resource-form :deep(.el-form-item__content) { margin-left: 0 !important; }
+}
+</style>
+
 <template>
   <div class="oauth-route-page">
     <PageFrame
       section="接入管理"
       title="服务"
       description="登记接收访问凭据的接口服务，并限制每个服务能够获得的用户信息。"
-      filter-hint="按服务名称或当前状态查找"
-    >
+      filter-hint="按服务名称或当前状态查找">
       <template #actions>
         <el-button
           type="primary"
           icon="el-icon-plus"
           v-hasPermi="['system:oauthResource:add']"
-          @click="handleAdd"
-          >新增服务</el-button
-        >
+          @click="handleAdd">新增服务</el-button>
       </template>
 
       <template #filters>
         <el-form
-          v-show="showSearch"
           ref="queryRef"
           :model="queryParams"
           :inline="true"
-        >
-          <el-form-item
-            label="服务名称"
-            prop="resourceName"
-          >
+          v-show="showSearch">
+          <el-form-item label="服务名称" prop="resourceName">
             <el-input
               v-model="queryParams.resourceName"
               clearable
               placeholder="输入服务名称"
               style="width: 200px"
-              @keyup.enter.native="handleQuery"
-            />
+              @keyup.enter.native="handleQuery"/>
           </el-form-item>
-          <el-form-item
-            label="状态"
-            prop="status"
-          >
+          <el-form-item label="状态" prop="status">
             <el-select
               v-model="queryParams.status"
               clearable
               placeholder="全部状态"
-              style="width: 200px"
-            >
-              <el-option
-                label="使用中"
-                value="0"
-              />
-              <el-option
-                label="已停用"
-                value="1"
-              />
+              style="width: 200px">
+              <el-option label="使用中" value="0"/>
+              <el-option label="已停用" value="1"/>
             </el-select>
           </el-form-item>
           <el-form-item>
             <el-button
               type="primary"
               icon="el-icon-search"
-              @click="handleQuery"
-              >查找</el-button
-            >
-            <el-button
-              icon="el-icon-refresh"
-              @click="resetQuery"
-              >清空</el-button
-            >
+              @click="handleQuery">查找</el-button>
+            <el-button icon="el-icon-refresh" @click="resetQuery">清空</el-button>
           </el-form-item>
         </el-form>
       </template>
 
       <template #toolbar>
-        <span class="result-count"
-          >已登记 <strong>{{ total }}</strong> 个服务</span
-        >
-        <right-toolbar
-          :showSearch.sync="showSearch"
-          @queryTable="getList"
-        />
+        <span class="result-count">已登记 <strong>{{ total }}</strong> 个服务</span>
+        <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"/>
       </template>
 
-      <el-table
-        v-loading="loading"
-        :data="resourceList"
-        row-key="resourceId"
-      >
-        <el-table-column
-          label="服务"
-          min-width="230"
-        >
+      <el-table v-loading="loading" :data="resourceList" row-key="resourceId">
+        <el-table-column label="服务" min-width="230">
           <template #default="scope">
             <div class="entity-cell">
-              <span class="service-mark"
-                ><i
-                  class="el-icon el-icon-connection"
-                  aria-hidden="true"
-                ></i
-              ></span>
+              <span class="service-mark">
+                <i class="el-icon el-icon-connection" aria-hidden="true"></i>
+              </span>
               <span class="entity-copy">
                 <strong>{{ scope.row.resourceName }}</strong>
                 <code>{{ scope.row.resourceId }}</code>
@@ -105,99 +92,57 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column
-          label="令牌目标"
-          prop="audience"
-          min-width="250"
-          show-overflow-tooltip
-        >
-          <template #default="scope"
-            ><code class="audience-value">{{ scope.row.audience }}</code></template
-          >
+        <el-table-column label="令牌目标" prop="audience" min-width="250" show-overflow-tooltip>
+          <template #default="scope"><code class="audience-value">{{ scope.row.audience }}</code></template>
         </el-table-column>
-        <el-table-column
-          label="返回的用户信息"
-          min-width="240"
-        >
+        <el-table-column label="返回的用户信息" min-width="240">
           <template #default="scope">
             <div class="tag-summary">
               <el-tag
                 v-for="claim in (scope.row.allowedClaims || []).slice(0, 3)"
                 :key="claim"
                 size="small"
-                effect="plain"
-                >{{ claimLabel(claim) }}</el-tag
-              >
-              <span
-                v-if="(scope.row.allowedClaims || []).length > 3"
-                class="muted-value"
-                >+{{ scope.row.allowedClaims.length - 3 }}</span
-              >
+                effect="plain">{{ claimLabel(claim) }}</el-tag>
+              <span class="muted-value" v-if="(scope.row.allowedClaims || []).length > 3">+{{ scope.row.allowedClaims.length - 3 }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column
-          label="有效时长"
-          width="120"
-          align="center"
-        >
+        <el-table-column label="有效时长" width="120" align="center">
           <template #default="scope">{{
             scope.row.accessTokenTtlSeconds
               ? formatDuration(scope.row.accessTokenTtlSeconds)
               : '平台默认'
           }}</template>
         </el-table-column>
-        <el-table-column
-          label="状态"
-          width="105"
-          align="center"
-        >
+        <el-table-column label="状态" width="105" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.status === '0' ? 'success' : 'info'">{{
               scope.row.status === '0' ? '使用中' : '已停用'
             }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column
-          label="操作"
-          width="180"
-          fixed="right"
-          align="center"
-        >
+        <el-table-column label="操作" width="180" fixed="right" align="center">
           <template #default="scope">
             <div class="table-actions">
               <el-button
                 type="text"
                 icon="el-icon-edit"
                 v-hasPermi="['system:oauthResource:edit']"
-                @click="handleUpdate(scope.row)"
-                >编辑</el-button
-              >
-              <el-dropdown
-                trigger="click"
-                @command="(command) => handleRowCommand(command, scope.row)"
-              >
-                <el-button
-                  type="text"
-                  icon="el-icon-arrow-down"
-                  >更多</el-button
-                >
+                @click="handleUpdate(scope.row)">编辑</el-button>
+              <el-dropdown trigger="click" @command="(command) => handleRowCommand(command, scope.row)">
+                <el-button type="text" icon="el-icon-arrow-down">更多</el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item
                       v-if="scope.row.status !== '0'"
                       command="enable"
                       icon="el-icon-circle-check"
-                      v-hasPermi="['system:oauthResource:edit']"
-                      >重新启用</el-dropdown-item
-                    >
+                      v-hasPermi="['system:oauthResource:edit']">重新启用</el-dropdown-item>
                     <el-dropdown-item
                       v-else
                       command="disable"
                       icon="el-icon-circle-close"
-                      v-hasPermi="['system:oauthResource:remove']"
-                      >停用服务</el-dropdown-item
-                    >
+                      v-hasPermi="['system:oauthResource:remove']">停用服务</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -209,9 +154,7 @@
             <el-button
               type="primary"
               v-hasPermi="['system:oauthResource:add']"
-              @click="handleAdd"
-              >新增第一个服务</el-button
-            >
+              @click="handleAdd">新增第一个服务</el-button>
           </el-empty>
         </template>
       </el-table>
@@ -220,8 +163,7 @@
         :page.sync="queryParams.pageNum"
         :limit.sync="queryParams.pageSize"
         :total="total"
-        @pagination="getList"
-      />
+        @pagination="getList"/>
     </PageFrame>
 
     <el-dialog
@@ -230,69 +172,46 @@
       :title="form.persisted ? '编辑服务' : '新增服务'"
       width="min(820px, calc(100vw - 48px))"
       append-to-body
-      :close-on-click-modal="false"
-    >
+      :close-on-click-modal="false">
       <el-form
+        class="resource-form"
         ref="formRef"
         :model="form"
         :rules="rules"
-        label-width="160px"
-        class="resource-form"
-      >
+        label-width="160px">
         <section class="form-section">
           <div class="section-heading">
             <h3>服务身份</h3>
             <p>应用通过服务标识申请访问，服务通过令牌目标判断凭据是否发给自己。</p>
           </div>
           <el-row :gutter="18">
-            <el-col
-              :xs="24"
-              :sm="12"
-            >
+            <el-col :xs="24" :sm="12">
               <el-form-item prop="resourceName">
-                <template #label
-                  ><FieldLabel
-                    label="服务名称"
-                    help="管理端展示名称，便于管理员识别这个服务。"
-                /></template>
+                <template #label><FieldLabel label="服务名称" help="管理端展示名称，便于管理员识别这个服务。"/></template>
                 <el-input
                   v-model="form.resourceName"
                   placeholder="例如：订单服务"
-                  style="width: 100%"
-                />
+                  style="width: 100%"/>
               </el-form-item>
             </el-col>
-            <el-col
-              :xs="24"
-              :sm="12"
-            >
+            <el-col :xs="24" :sm="12">
               <el-form-item prop="resourceId">
-                <template #label
-                  ><FieldLabel
-                    label="服务标识"
-                    help="应用通过这个唯一标识关联服务，保存后不能修改。"
-                /></template>
+                <template #label><FieldLabel label="服务标识" help="应用通过这个唯一标识关联服务，保存后不能修改。"/></template>
                 <el-input
                   v-model="form.resourceId"
                   :disabled="form.persisted"
                   placeholder="例如：orders-api"
-                  style="width: 100%"
-                />
+                  style="width: 100%"/>
               </el-form-item>
             </el-col>
           </el-row>
           <el-form-item prop="audience">
-            <template #label
-              ><FieldLabel
-                label="令牌目标"
-                help="服务校验访问凭据时使用的唯一值，必须与服务端配置完全一致。"
-            /></template>
+            <template #label><FieldLabel label="令牌目标" help="服务校验访问凭据时使用的唯一值，必须与服务端配置完全一致。"/></template>
             <el-input
               v-model="form.audience"
               :disabled="form.persisted"
               placeholder="例如：https://api.example.com"
-              style="width: 100%"
-            />
+              style="width: 100%"/>
           </el-form-item>
         </section>
 
@@ -302,51 +221,31 @@
             <p>控制访问凭据的寿命，以及这个服务最多可以获得哪些用户信息。</p>
           </div>
           <el-row :gutter="18">
-            <el-col
-              :xs="24"
-              :sm="12"
-            >
+            <el-col :xs="24" :sm="12">
               <el-form-item class="duration-field">
-                <template #label
-                  ><FieldLabel
-                    label="有效时长"
-                    help="服务收到的访问凭据最多可以使用多久，留空使用平台默认值。"
-                /></template>
+                <template #label><FieldLabel label="有效时长" help="服务收到的访问凭据最多可以使用多久，留空使用平台默认值。"/></template>
                 <el-input-number
                   :value="form.accessTokenTtlSeconds ?? undefined"
-                  @input="form.accessTokenTtlSeconds = $event ?? null"
                   :min="1"
                   placeholder="平台默认"
                   controls-position="right"
                   style="width: 100%"
-                />
+                  @input="form.accessTokenTtlSeconds = $event ?? null"/>
                 <span class="input-unit">秒</span>
               </el-form-item>
             </el-col>
-            <el-col
-              :xs="24"
-              :sm="12"
-            >
+            <el-col :xs="24" :sm="12">
               <el-form-item>
-                <template #label
-                  ><FieldLabel
-                    label="令牌检查应用"
-                    help="可选。填写一个后端应用编号，用于检查凭据是否仍然有效。"
-                /></template>
+                <template #label><FieldLabel label="令牌检查应用" help="可选。填写一个后端应用编号，用于检查凭据是否仍然有效。"/></template>
                 <el-input
                   v-model="form.introspectionClientId"
                   placeholder="可选：后端应用编号"
-                  style="width: 100%"
-                />
+                  style="width: 100%"/>
               </el-form-item>
             </el-col>
           </el-row>
           <el-form-item prop="allowedClaims">
-            <template #label
-              ><FieldLabel
-                label="可返回用户信息"
-                help="限制这个服务最多能收到哪些用户信息，最终结果仍会受权限项限制。"
-            /></template>
+            <template #label><FieldLabel label="可返回用户信息" help="限制这个服务最多能收到哪些用户信息，最终结果仍会受权限项限制。"/></template>
             <el-select
               v-model="form.allowedClaims"
               multiple
@@ -354,30 +253,23 @@
               allow-create
               default-first-option
               placeholder="选择或输入用户字段"
-              style="width: 100%"
-            >
+              style="width: 100%">
               <el-option
                 v-for="item in claimOptions"
                 :key="item.value"
                 :label="item.label"
-                :value="item.value"
-              />
+                :value="item.value"/>
             </el-select>
           </el-form-item>
           <el-form-item>
-            <template #label
-              ><FieldLabel
-                label="备注"
-                help="仅供管理员记录，不会发送给外部应用或服务。"
-            /></template>
+            <template #label><FieldLabel label="备注" help="仅供管理员记录，不会发送给外部应用或服务。"/></template>
             <el-input
               v-model="form.remark"
               type="textarea"
               :rows="3"
               maxlength="500"
               show-word-limit
-              style="width: 100%"
-            />
+              style="width: 100%"/>
           </el-form-item>
         </section>
       </el-form>
@@ -386,16 +278,60 @@
         <el-button
           type="primary"
           :loading="saving"
-          @click="submitForm"
-          >保存服务</el-button
-        >
+          @click="submitForm">保存服务</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
-export default { name: 'OAuthResource' }
+/**
+ * 组件名称：OAuthResource
+ * 功能说明：OAuth 资源服务管理页面，登记接收访问凭据的接口服务并限制每个服务能够获得的用户信息
+ * 研发时间：2026/10/01
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ * @data {Array}   resourceList - 资源服务列表数据
+ * @data {Number}  total        - 资源服务总条数
+ * @data {Boolean} loading      - 列表加载状态
+ * @data {Boolean} saving       - 保存提交中状态
+ * @data {Boolean} showSearch   - 是否显示搜索条件
+ * @data {Boolean} open         - 表单对话框是否可见
+ * @data {Object}  queryParams  - 查询参数
+ * @data {Object}  form         - 资源服务表单数据
+ * @data {Array}   claimOptions - 可返回用户信息候选项
+ * @data {Object}  rules        - 表单校验规则
+ *
+ * 事件说明：
+ * @event emptyForm        - 创建资源服务表单默认值
+ * @event resetForm        - 重置资源服务表单
+ * @event getList          - 查询资源服务列表
+ * @event handleQuery      - 搜索按钮操作
+ * @event resetQuery       - 重置按钮操作
+ * @event handleAdd        - 新增按钮操作
+ * @event handleUpdate     - 修改按钮操作
+ * @event submitForm       - 校验并保存资源服务配置
+ * @event changeStatus     - 修改资源服务状态
+ * @event handleDelete     - 删除按钮操作
+ * @event handleRowCommand - 处理资源服务行操作
+ * @event claimLabel       - 获取声明字段的展示名称
+ * @event formatDuration   - 显示访问令牌有效期
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/01     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
+export default
+{
+  name: 'OAuthResource'
+}
 </script>
 
 <script setup>
@@ -455,8 +391,12 @@ const rules = {
   ],
 }
 
-/** 创建资源服务表单默认值 */
-function emptyForm() {
+/**
+ * 创建资源服务表单默认值
+ * @returns {Object} 资源服务表单默认数据
+ */
+function emptyForm()
+{
   return {
     persisted: false,
     resourceId: '',
@@ -472,14 +412,20 @@ function emptyForm() {
   }
 }
 
-/** 重置资源服务表单 */
-function resetForm() {
+/**
+ * 重置资源服务表单
+ */
+function resetForm()
+{
   Object.assign(form, emptyForm())
   proxy.resetForm('formRef')
 }
 
-/** 查询资源服务列表 */
-async function getList() {
+/**
+ * 查询资源服务列表
+ */
+async function getList()
+{
   loading.value = true
   try {
     const response = await listOAuthResources(queryParams)
@@ -490,26 +436,39 @@ async function getList() {
   }
 }
 
-/** 搜索按钮操作 */
-function handleQuery() {
+/**
+ * 搜索按钮操作
+ */
+function handleQuery()
+{
   queryParams.pageNum = 1
   getList()
 }
 
-/** 重置按钮操作 */
-function resetQuery() {
+/**
+ * 重置按钮操作
+ */
+function resetQuery()
+{
   proxy.resetForm('queryRef')
   handleQuery()
 }
 
-/** 新增按钮操作 */
-function handleAdd() {
+/**
+ * 新增按钮操作
+ */
+function handleAdd()
+{
   resetForm()
   open.value = true
 }
 
-/** 修改按钮操作 */
-async function handleUpdate(row) {
+/**
+ * 修改按钮操作
+ * @param {Object} row - 资源服务行数据
+ */
+async function handleUpdate(row)
+{
   resetForm()
   const response = await getOAuthResource(row.resourceId)
   Object.assign(form, response.data, {
@@ -519,8 +478,11 @@ async function handleUpdate(row) {
   open.value = true
 }
 
-/** 校验并保存资源服务配置 */
-async function submitForm() {
+/**
+ * 校验并保存资源服务配置
+ */
+async function submitForm()
+{
   await proxy.$refs.formRef.validate()
   saving.value = true
   try {
@@ -538,8 +500,13 @@ async function submitForm() {
   }
 }
 
-/** 修改资源服务状态 */
-async function changeStatus(row, status) {
+/**
+ * 修改资源服务状态
+ * @param {Object} row - 资源服务行数据
+ * @param {String} status - 目标状态
+ */
+async function changeStatus(row, status)
+{
   try {
     await proxy.$modal.confirm(`${status === '0' ? '启用' : '停用'}资源“${row.resourceName}”？`)
     await changeOAuthResourceStatus({ resourceId: row.resourceId, status })
@@ -549,8 +516,12 @@ async function changeStatus(row, status) {
   }
 }
 
-/** 删除按钮操作 */
-async function handleDelete(row) {
+/**
+ * 删除按钮操作
+ * @param {Object} row - 资源服务行数据
+ */
+async function handleDelete(row)
+{
   await proxy.$modal.confirm(
     `停用“${row.resourceName}”后将停止为该服务签发和刷新访问令牌，是否继续？`
   )
@@ -559,8 +530,13 @@ async function handleDelete(row) {
   await getList()
 }
 
-/** 处理资源服务行操作 */
-function handleRowCommand(command, row) {
+/**
+ * 处理资源服务行操作
+ * @param {String} command - 操作指令
+ * @param {Object} row - 资源服务行数据
+ */
+function handleRowCommand(command, row)
+{
   if (command === 'enable') {
     return changeStatus(row, '0')
   }
@@ -569,13 +545,23 @@ function handleRowCommand(command, row) {
   }
 }
 
-/** 获取声明字段的展示名称 */
-function claimLabel(value) {
+/**
+ * 获取声明字段的展示名称
+ * @param {String} value - 字段值
+ * @returns {String} 字段展示名称
+ */
+function claimLabel(value)
+{
   return claimOptions.find((item) => item.value === value)?.label?.replace(/（.*）$/, '') || value
 }
 
-/** 显示访问令牌有效期 */
-function formatDuration(value) {
+/**
+ * 显示访问令牌有效期
+ * @param {Number} value - 有效期秒数
+ * @returns {String} 有效期展示文本
+ */
+function formatDuration(value)
+{
   const seconds = Number(value) || 0
   if (seconds >= 3600 && seconds % 3600 === 0) {
     return `${seconds / 3600} 小时`
@@ -588,126 +574,3 @@ function formatDuration(value) {
 
 getList()
 </script>
-
-<style scoped>
-.result-count {
-  color: var(--oauth-text-color-regular);
-  font-size: 13px;
-}
-
-.result-count strong {
-  color: var(--oauth-text-color-primary);
-  font-size: 16px;
-}
-
-.entity-cell {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  min-width: 0;
-}
-
-.service-mark {
-  display: grid;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  color: var(--oauth-color-success);
-  background: var(--oauth-color-success-light-9);
-  border: 1px solid var(--oauth-color-success-light-7);
-  border-radius: 8px;
-  place-items: center;
-}
-
-.entity-copy {
-  min-width: 0;
-}
-
-.entity-copy strong,
-.entity-copy code {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.entity-copy strong {
-  color: var(--oauth-text-color-primary);
-}
-
-.entity-copy code,
-.audience-value {
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-.entity-copy code {
-  margin-top: 4px;
-}
-
-.tag-summary {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.muted-value {
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-.form-section + .form-section {
-  margin-top: 6px;
-  padding-top: 22px;
-  border-top: 1px solid var(--oauth-border-color-lighter);
-}
-
-.section-heading {
-  margin-bottom: 22px;
-}
-
-.section-heading h3 {
-  margin: 0;
-  color: var(--oauth-text-color-primary);
-  font-size: 17px;
-  font-weight: 650;
-}
-
-.section-heading p {
-  margin: 7px 0 0;
-  color: var(--oauth-text-color-secondary);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.resource-form :deep(.el-input-number) {
-  flex: 1;
-  width: auto !important;
-}
-
-.duration-field :deep(.el-form-item__content) {
-  display: flex;
-  align-items: center;
-}
-
-.input-unit {
-  flex: 0 0 auto;
-  margin-left: 8px;
-  color: var(--oauth-text-color-secondary);
-}
-
-@media (max-width: 768px) {
-  .resource-form :deep(.el-form-item) {
-    display: block;
-  }
-
-  .resource-form :deep(.el-form-item__label) {
-    width: auto !important;
-    margin-bottom: 6px;
-  }
-
-  .resource-form :deep(.el-form-item__content) {
-    margin-left: 0 !important;
-  }
-}
-</style>

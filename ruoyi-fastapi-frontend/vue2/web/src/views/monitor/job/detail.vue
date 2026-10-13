@@ -1,10 +1,15 @@
+<style lang="scss" scoped>
+.detail-label { width: 80px; }
+.code-field + .code-field { margin-top: 12px; }
+.code-field-label { margin-bottom: 6px; color: #909399; font-size: 12px; }
+</style>
+
 <template>
   <el-dialog
     :title="type === 'log' ? '调度日志详细' : '任务详细'"
     :visible.sync="dialogVisible"
     width="780px"
-    append-to-body
-  >
+    append-to-body>
     <div class="detail-wrap">
       <template v-if="type === 'log'">
         <!-- 基本信息 -->
@@ -23,15 +28,11 @@
                 <el-tag
                   v-if="form.status == 0"
                   type="success"
-                  size="small"
-                  >正常</el-tag
-                >
+                  size="small">正常</el-tag>
                 <el-tag
                   v-else
                   type="danger"
-                  size="small"
-                  >失败</el-tag
-                >
+                  size="small">失败</el-tag>
               </div>
             </el-col>
           </el-row>
@@ -56,10 +57,7 @@
                 <span class="detail-value">{{ formatTime(form.createTime) }}</span>
               </div>
             </el-col>
-            <el-col
-              v-if="form.runDurationMs != null"
-              :span="12"
-            >
+            <el-col v-if="form.runDurationMs != null" :span="12">
               <div class="detail-item">
                 <span class="detail-label">执行耗时</span>
                 <span class="detail-value">{{ form.runDurationMs }} 毫秒</span>
@@ -113,8 +111,7 @@
                 <span class="detail-label">任务执行器</span>
                 <dict-tag
                   :options="dict.type.sys_job_executor"
-                  :value="form.jobExecutor"
-                />
+                  :value="form.jobExecutor" />
               </div>
             </el-col>
             <el-col :span="12">
@@ -130,8 +127,7 @@
                 <span class="detail-label">调度存储</span>
                 <dict-tag
                   :options="dict.type.sys_job_store"
-                  :value="form.jobStore"
-                />
+                  :value="form.jobStore" />
               </div>
             </el-col>
             <el-col :span="12">
@@ -177,10 +173,7 @@
         </div>
 
         <!-- 异常信息 -->
-        <div
-          v-if="form.status == 1"
-          class="detail-card"
-        >
+        <div class="detail-card" v-if="form.status == 1">
           <div class="detail-card-title error-title"><i class="el-icon-warning"></i> 异常信息</div>
           <div class="error-body">
             <div class="error-msg">{{ form.exceptionInfo }}</div>
@@ -219,15 +212,11 @@
                 <el-tag
                   v-if="form.status == 0"
                   type="success"
-                  size="small"
-                  >正常</el-tag
-                >
+                  size="small">正常</el-tag>
                 <el-tag
                   v-else
                   type="info"
-                  size="small"
-                  >暂停</el-tag
-                >
+                  size="small">暂停</el-tag>
               </div>
             </el-col>
           </el-row>
@@ -237,8 +226,7 @@
                 <span class="detail-label">任务执行器</span>
                 <dict-tag
                   :options="dict.type.sys_job_executor"
-                  :value="form.jobExecutor"
-                />
+                  :value="form.jobExecutor" />
               </div>
             </el-col>
             <el-col :span="12">
@@ -246,8 +234,7 @@
                 <span class="detail-label">调度存储</span>
                 <dict-tag
                   :options="dict.type.sys_job_store"
-                  :value="form.jobStore"
-                />
+                  :value="form.jobStore" />
               </div>
             </el-col>
           </el-row>
@@ -323,11 +310,7 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">同步状态</span>
-                <el-tag
-                  size="small"
-                  :type="syncState.type"
-                  >{{ syncState.label }}</el-tag
-                >
+                <el-tag size="small" :type="syncState.type">{{ syncState.label }}</el-tag>
               </div>
             </el-col>
             <el-col :span="12">
@@ -355,10 +338,7 @@
               </div>
             </el-col>
           </el-row>
-          <div
-            v-if="form.syncError"
-            class="error-body"
-          >
+          <div class="error-body" v-if="form.syncError">
             <div class="error-msg">{{ form.syncError }}</div>
           </div>
         </div>
@@ -419,10 +399,7 @@
               </div>
             </el-col>
           </el-row>
-          <el-row
-            v-if="form.remark"
-            class="detail-row"
-          >
+          <el-row class="detail-row" v-if="form.remark">
             <el-col :span="24">
               <div class="detail-item">
                 <span class="detail-label">备注</span>
@@ -437,57 +414,105 @@
 </template>
 
 <script>
+/**
+ * 组件名称：JobDetail
+ * 功能说明：任务或调度日志详细弹窗
+ * 研发时间：2026/07/31
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ * @prop {Boolean} visible - 是否显示弹窗
+ * @prop {Object}  row     - 行数据
+ * @prop {String}  type    - 详细类型（'job' 任务详细 | 'log' 调度日志详细）
+ *
+ * 事件说明：
+ * @event formatParameter - 格式化参数展示
+ * @event formatTime      - 格式化时间展示
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/07/31     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import { syncStates } from '@/utils/job'
 
-export default {
+export default
+{
   name: 'JobDetail',
+
   dicts: ['sys_job_store', 'sys_job_executor'],
-  props: {
+
+  props:
+  {
     visible: { type: Boolean, default: false },
     row: { type: Object, default: () => ({}) },
     // 'job' 任务详细 | 'log' 调度日志详细
     type: { type: String, default: 'job' },
   },
-  computed: {
-    form() {
+
+  computed:
+  {
+    /**
+     * 表单数据
+     * @returns {Object} 当前行数据
+     */
+    form()
+    {
       return this.row || {}
     },
-    dialogVisible: {
-      get() {
+
+    /**
+     * 弹窗显示状态
+     * @returns {Boolean} 是否显示
+     */
+    dialogVisible:
+    {
+      get()
+      {
         return this.visible
       },
-      set(value) {
-        this.$emit('update:visible', value)
+
+      set(value)
+      {
+        return this.$emit('update:visible', value)
       },
     },
-    syncState() {
+
+    /**
+     * 当前同步状态
+     * @returns {Object} 同步状态对象
+     */
+    syncState()
+    {
       return syncStates[this.form.syncStatus] || syncStates.pending
     },
   },
-  methods: {
-    formatParameter(value) {
+
+  methods:
+  {
+    /**
+     * 格式化参数展示
+     * @param {*} value - 参数值
+     * @returns {String} 格式化后的字符串
+     */
+    formatParameter(value)
+    {
       if (value === null || value === undefined || value === '') return '（无）'
       return typeof value === 'string' ? value : JSON.stringify(value, null, 2)
     },
-    formatTime(value) {
+
+    /**
+     * 格式化时间展示
+     * @param {*} value - 时间值
+     * @returns {String} 格式化后的时间
+     */
+    formatTime(value)
+    {
       return value ? this.parseTime(value) : '-'
     },
   },
 }
 </script>
-
-<style scoped>
-.detail-label {
-  width: 80px;
-}
-
-.code-field + .code-field {
-  margin-top: 12px;
-}
-
-.code-field-label {
-  margin-bottom: 6px;
-  color: #909399;
-  font-size: 12px;
-}
-</style>

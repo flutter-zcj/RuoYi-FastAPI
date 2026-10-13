@@ -1,196 +1,182 @@
+<style lang="scss" scoped>
+.config-help { width: 100%; margin-top: 4px; font-size: 12px; line-height: 18px; color: #909399; }
+.config-help-text { display: block; }
+.config-inline-actions { width: 100%; margin-top: 4px; line-height: 20px; }
+.config-meta-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.plugin-config-control { width: 320px; max-width: 100%; }
+.plugin-config-control ::v-deep .el-input { width: 100%; }
+.plugin-config-item { margin-bottom: 18px; }
+.plugin-config-section + .plugin-config-section { margin-top: 6px; }
+.plugin-config-section-title { padding-left: 120px; margin: 0 0 10px; font-size: 13px; font-weight: 600; color: #606266; }
+</style>
+
 <template>
   <el-dialog
     :title="title"
     :visible="visible"
-    width="min(720px, calc(100vw - 32px))"
+    width="720px"
     append-to-body
-    @close="emit('update:visible', false)"
-  >
-    <PluginConfigStatus
-      v-if="visible && pluginId"
-      :plugin-id="pluginId"
-      :refresh-key="refreshKey"
-    />
+    @close="emit('update:visible', false)">
     <el-form
       ref="configRef"
-      class="plugin-config-form"
       :model="configForm"
-      label-width="120px"
-    >
-      <el-empty
-        v-if="!items.length"
-        description="暂无插件配置"
-      />
+      label-width="120px">
+      <el-empty v-if="!items.length" description="暂无插件配置"/>
       <div
-        v-for="group in configGroups"
-        :key="group.name"
         class="plugin-config-section"
-      >
+        v-for="group in configGroups"
+        :key="group.name">
         <div
-          v-if="configGroups.length > 1 || group.name !== 'default'"
           class="plugin-config-section-title"
-        >
+          v-if="configGroups.length > 1 || group.name !== 'default'">
           {{ formatConfigGroupLabel(group.name) }}
         </div>
         <el-form-item
+          class="plugin-config-item"
           v-for="item in group.items"
           :key="item.key"
           :label="item.label || item.key"
           :prop="'values.' + item.key"
-          :rules="getConfigItemRules(item)"
-          class="plugin-config-item"
-        >
+          :rules="getConfigItemRules(item)">
           <el-switch
             v-if="item.type === 'boolean'"
-            v-model="configForm.values[item.key]"
-          />
+            v-model="configForm.values[item.key]"/>
           <el-input-number
+            class="plugin-config-control"
             v-else-if="item.type === 'number'"
             v-model="configForm.values[item.key]"
             :min="normalizeConfigBound(item.min)"
             :max="normalizeConfigBound(item.max)"
-            :placeholder="getConfigInputPlaceholder(item)"
-            class="plugin-config-control"
-          />
+            :placeholder="getConfigInputPlaceholder(item)"/>
           <el-select
+            class="plugin-config-control"
             v-else-if="item.type === 'select'"
             v-model="configForm.values[item.key]"
-            :placeholder="getConfigInputPlaceholder(item)"
-            class="plugin-config-control"
-          >
+            :placeholder="getConfigInputPlaceholder(item)">
             <el-option
               v-for="option in item.options || []"
               :key="String(option.value)"
               :label="option.label"
-              :value="option.value"
-            />
+              :value="option.value"/>
           </el-select>
           <template v-else-if="item.type === 'textarea' || item.type === 'json'">
             <el-input
+              class="plugin-config-control"
               v-model="configForm.values[item.key]"
               type="textarea"
               :rows="4"
-              :placeholder="getConfigInputPlaceholder(item)"
-              class="plugin-config-control"
-            />
-            <div
-              v-if="item.type === 'json'"
-              class="config-inline-actions"
-            >
+              :placeholder="getConfigInputPlaceholder(item)"/>
+            <div class="config-inline-actions" v-if="item.type === 'json'">
               <el-button
                 type="text"
                 icon="el-icon-magic-stick"
-                @click="formatConfigJsonValue(item)"
-                >格式化 JSON</el-button
-              >
+                @click="formatConfigJsonValue(item)">格式化 JSON</el-button>
             </div>
           </template>
           <el-input
+            class="plugin-config-control"
             v-else
             v-model="configForm.values[item.key]"
             :type="isSecretConfigItem(item) ? 'password' : 'text'"
             :show-password="isSecretConfigItem(item)"
-            :placeholder="getConfigInputPlaceholder(item)"
-            class="plugin-config-control"
-          />
+            :placeholder="getConfigInputPlaceholder(item)"/>
           <div class="config-help">
-            <span
-              v-if="item.description"
-              class="config-help-text"
-              >{{ item.description }}</span
-            >
-            <div
-              v-if="hasConfigMeta(item)"
-              class="config-meta-list"
-            >
+            <span class="config-help-text" v-if="item.description">{{ item.description }}</span>
+            <div class="config-meta-list" v-if="hasConfigMeta(item)">
               <el-tag
                 size="small"
                 type="info"
-                effect="plain"
-                >{{ item.key }}</el-tag
-              >
+                effect="plain">{{ item.key }}</el-tag>
               <el-tag
                 v-if="item.required"
                 size="small"
                 type="warning"
-                effect="plain"
-                >必填</el-tag
-              >
+                effect="plain">必填</el-tag>
               <el-tag
                 v-if="item.secret"
                 size="small"
                 type="warning"
-                effect="plain"
-                >敏感</el-tag
-              >
+                effect="plain">敏感</el-tag>
               <el-tag
                 v-if="formatConfigDefaultValue(item) !== '-'"
                 size="small"
                 type="info"
-                effect="plain"
-                >默认 {{ formatConfigDefaultValue(item) }}</el-tag
-              >
+                effect="plain">默认 {{ formatConfigDefaultValue(item) }}</el-tag>
               <el-tag
                 v-if="formatConfigConstraint(item) !== '-'"
                 size="small"
                 type="info"
-                effect="plain"
-                >{{ formatConfigConstraint(item) }}</el-tag
-              >
+                effect="plain">{{ formatConfigConstraint(item) }}</el-tag>
             </div>
           </div>
         </el-form-item>
       </div>
     </el-form>
-    <div
-      slot="footer"
-      class="dialog-footer"
-    >
+    <div class="dialog-footer" slot="footer">
       <el-button
         type="primary"
         :disabled="!items.length"
         :loading="loading"
-        @click="submit"
         v-hasPermi="['system:plugin:edit']"
-        >保 存</el-button
-      >
+        @click="submit">保 存</el-button>
       <el-button @click="emit('update:visible', false)">关 闭</el-button>
     </div>
   </el-dialog>
 </template>
 
 <script setup name="PluginConfigDialog">
+/**
+ * 组件名称：PluginConfigDialog
+ * 功能说明：插件配置弹窗，按分组渲染配置项并提交配置值
+ * 研发时间：2026/07/28
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ * @prop {Boolean}  visible                    - 是否显示弹窗
+ * @prop {String}   title                      - 弹窗标题
+ * @prop {Array}    items                      - 配置项列表
+ * @prop {Boolean}  loading                    - 加载状态
+ * @prop {Function} formatConfigDefaultValue   - 格式化默认值
+ * @prop {Function} formatConfigConstraint     - 格式化约束
+ *
+ * 变量说明：
+ * @data {Object} configRef    - 表单引用
+ * @data {Object} configForm   - 配置表单数据
+ * @data {Array}  configGroups - 按分组聚合后的配置项
+ *
+ * 事件说明：
+ * @event submit                     - 提交配置值
+ * @event normalizeConfigValueForForm - 规范化配置项表单值
+ * @event buildConfigSubmitValues    - 构建提交数据
+ * @event getConfigItemRules         - 获取配置项校验规则
+ * @event isSecretConfigItem         - 判断是否为敏感配置项
+ * @event buildNumberConfigValidator - 构建数字校验器
+ * @event buildPatternConfigValidator - 构建正则校验器
+ * @event validateJsonConfig         - 校验 JSON 配置
+ * @event formatConfigJsonValue      - 格式化 JSON 配置值
+ * @event getConfigInputPlaceholder  - 获取配置输入占位符
+ * @event normalizeConfigBound       - 规范化配置边界值
+ * @event hasConfigMeta              - 是否存在配置元信息
+ * @event formatConfigGroupLabel     - 格式化配置分组标签
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/07/28     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import { computed, reactive, ref, watch } from 'vue'
 import { Message } from 'element-ui'
-import PluginConfigStatus from './PluginConfigStatus.vue'
 
 const props = defineProps({
-  pluginId: { type: String, default: '' },
-  refreshKey: { type: Number, default: 0 },
-  visible: {
-    type: Boolean,
-    default: false,
-  },
-  title: {
-    type: String,
-    default: '插件配置',
-  },
-  items: {
-    type: Array,
-    default: () => [],
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  formatConfigDefaultValue: {
-    type: Function,
-    required: true,
-  },
-  formatConfigConstraint: {
-    type: Function,
-    required: true,
-  },
+  visible: { type: Boolean, default: false },
+  title: { type: String, default: '插件配置' },
+  items: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  formatConfigDefaultValue: { type: Function, required: true },
+  formatConfigConstraint: { type: Function, required: true },
 })
 
 const emit = defineEmits(['update:visible', 'submit'])
@@ -199,6 +185,10 @@ const configForm = reactive({
   values: {},
 })
 
+/**
+ * 按分组聚合后的配置项
+ * @returns {Array} 分组配置项
+ */
 const configGroups = computed(() => {
   const groups = new Map()
   const sortedItems = [...props.items].sort((left, right) => {
@@ -224,6 +214,9 @@ const configGroups = computed(() => {
   return Array.from(groups, ([name, items]) => ({ name, items }))
 })
 
+/**
+ * 监听配置项变化，重新初始化表单值
+ */
 watch(
   () => props.items,
   (items) => {
@@ -236,7 +229,11 @@ watch(
   { immediate: true }
 )
 
-function submit() {
+/**
+ * 提交配置值
+ */
+function submit()
+{
   configRef.value?.validate((valid) => {
     if (!valid) {
       return
@@ -252,7 +249,13 @@ function submit() {
   })
 }
 
-function normalizeConfigValueForForm(item) {
+/**
+ * 规范化配置项表单值
+ * @param {Object} item - 配置项
+ * @returns {*} 表单值
+ */
+function normalizeConfigValueForForm(item)
+{
   if (item.type !== 'json') {
     return item.value
   }
@@ -265,7 +268,12 @@ function normalizeConfigValueForForm(item) {
   return JSON.stringify(item.value, null, 2)
 }
 
-function buildConfigSubmitValues() {
+/**
+ * 构建提交数据
+ * @returns {Object} 提交配置值
+ */
+function buildConfigSubmitValues()
+{
   return props.items.reduce((values, item) => {
     const value = configForm.values[item.key]
     if (item.type === 'json' && typeof value === 'string' && value.trim()) {
@@ -281,7 +289,13 @@ function buildConfigSubmitValues() {
   }, {})
 }
 
-function getConfigItemRules(item) {
+/**
+ * 获取配置项校验规则
+ * @param {Object} item - 配置项
+ * @returns {Array} 校验规则
+ */
+function getConfigItemRules(item)
+{
   const rules = []
   if (item.required) {
     rules.push({
@@ -302,11 +316,23 @@ function getConfigItemRules(item) {
   return rules
 }
 
-function isSecretConfigItem(item) {
+/**
+ * 判断是否为敏感配置项
+ * @param {Object} item - 配置项
+ * @returns {Boolean} 是否为敏感配置项
+ */
+function isSecretConfigItem(item)
+{
   return item.type === 'password' || item.secret
 }
 
-function buildNumberConfigValidator(item) {
+/**
+ * 构建数字校验器
+ * @param {Object} item - 配置项
+ * @returns {Function} 校验器
+ */
+function buildNumberConfigValidator(item)
+{
   return (_rule, value, callback) => {
     if (value === undefined || value === null || value === '') {
       callback()
@@ -329,7 +355,13 @@ function buildNumberConfigValidator(item) {
   }
 }
 
-function buildPatternConfigValidator(item) {
+/**
+ * 构建正则校验器
+ * @param {Object} item - 配置项
+ * @returns {Function} 校验器
+ */
+function buildPatternConfigValidator(item)
+{
   return (_rule, value, callback) => {
     if (value === undefined || value === null || value === '') {
       callback()
@@ -348,7 +380,14 @@ function buildPatternConfigValidator(item) {
   }
 }
 
-function validateJsonConfig(_rule, value, callback) {
+/**
+ * 校验 JSON 配置
+ * @param {Object} _rule - 校验规则
+ * @param {String} value - 配置值
+ * @param {Function} callback - 回调函数
+ */
+function validateJsonConfig(_rule, value, callback)
+{
   if (value === undefined || value === null || value === '') {
     callback()
     return
@@ -361,7 +400,12 @@ function validateJsonConfig(_rule, value, callback) {
   }
 }
 
-function formatConfigJsonValue(item) {
+/**
+ * 格式化 JSON 配置值
+ * @param {Object} item - 配置项
+ */
+function formatConfigJsonValue(item)
+{
   const value = configForm.values[item.key]
   if (value === undefined || value === null || value === '') {
     return
@@ -377,15 +421,33 @@ function formatConfigJsonValue(item) {
   }
 }
 
-function getConfigInputPlaceholder(item) {
+/**
+ * 获取配置输入占位符
+ * @param {Object} item - 配置项
+ * @returns {String} 占位符
+ */
+function getConfigInputPlaceholder(item)
+{
   return item.placeholder || item.description || ''
 }
 
-function normalizeConfigBound(value) {
+/**
+ * 规范化配置边界值
+ * @param {*} value - 边界值
+ * @returns {*} 规范化后的边界值
+ */
+function normalizeConfigBound(value)
+{
   return value === null || value === undefined ? undefined : value
 }
 
-function hasConfigMeta(item) {
+/**
+ * 是否存在配置元信息
+ * @param {Object} item - 配置项
+ * @returns {Boolean} 是否存在元信息
+ */
+function hasConfigMeta(item)
+{
   return Boolean(
     item.key ||
       item.required ||
@@ -395,7 +457,13 @@ function hasConfigMeta(item) {
   )
 }
 
-function formatConfigGroupLabel(groupName) {
+/**
+ * 格式化配置分组标签
+ * @param {String} groupName - 分组名称
+ * @returns {String} 分组标签
+ */
+function formatConfigGroupLabel(groupName)
+{
   const groupMap = {
     default: '基础配置',
     model: '模型配置',
@@ -405,76 +473,3 @@ function formatConfigGroupLabel(groupName) {
   return groupMap[groupName] || groupName
 }
 </script>
-
-<style scoped>
-.config-help {
-  width: 100%;
-  margin-top: 4px;
-  color: var(--el-text-color-regular, #606266);
-  font-size: 12px;
-  line-height: 18px;
-}
-
-.config-help-text {
-  display: block;
-}
-
-.config-inline-actions {
-  width: 100%;
-  margin-top: 4px;
-  line-height: 20px;
-}
-
-.config-meta-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.plugin-config-control {
-  width: 320px;
-  max-width: 100%;
-}
-
-.plugin-config-control ::v-deep .el-input {
-  width: 100%;
-}
-
-.plugin-config-item {
-  margin-bottom: 18px;
-}
-
-.plugin-config-section + .plugin-config-section {
-  margin-top: 6px;
-}
-
-.plugin-config-section-title {
-  padding-left: 120px;
-  margin: 0 0 10px;
-  color: var(--el-text-color-regular, #606266);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-@media (max-width: 600px) {
-  .plugin-config-form :deep(.el-form-item) {
-    display: block;
-  }
-
-  .plugin-config-form :deep(.el-form-item__label) {
-    width: auto !important;
-    float: none;
-    display: block;
-    text-align: left;
-  }
-
-  .plugin-config-form :deep(.el-form-item__content) {
-    margin-left: 0 !important;
-  }
-
-  .plugin-config-section-title {
-    padding-left: 0;
-  }
-}
-</style>

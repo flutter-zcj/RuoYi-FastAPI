@@ -1,38 +1,22 @@
+<style lang="scss" scoped>
+</style>
+
 <template>
   <div class="app-container">
     <h4 class="form-header h4">基本信息</h4>
     <el-form
       ref="form"
       :model="form"
-      label-width="80px"
-    >
+      label-width="80px">
       <el-row>
-        <el-col
-          :span="8"
-          :offset="2"
-        >
-          <el-form-item
-            label="用户昵称"
-            prop="nickName"
-          >
-            <el-input
-              v-model="form.nickName"
-              disabled
-            />
+        <el-col :span="8" :offset="2">
+          <el-form-item label="用户昵称" prop="nickName">
+            <el-input v-model="form.nickName" disabled />
           </el-form-item>
         </el-col>
-        <el-col
-          :span="8"
-          :offset="2"
-        >
-          <el-form-item
-            label="登录账号"
-            prop="userName"
-          >
-            <el-input
-              v-model="form.userName"
-              disabled
-            />
+        <el-col :span="8" :offset="2">
+          <el-form-item label="登录账号" prop="userName">
+            <el-input v-model="form.userName" disabled />
           </el-form-item>
         </el-col>
       </el-row>
@@ -40,18 +24,16 @@
 
     <h4 class="form-header h4">角色信息</h4>
     <el-table
+      ref="table"
       v-loading="loading"
       :row-key="getRowKey"
-      @row-click="clickRow"
-      ref="table"
-      @selection-change="handleSelectionChange"
       :data="roles.slice((pageNum - 1) * pageSize, pageNum * pageSize)"
-    >
+      @row-click="clickRow"
+      @selection-change="handleSelectionChange">
       <el-table-column
         label="序号"
         type="index"
-        align="center"
-      >
+        align="center">
         <template slot-scope="scope">
           <span>{{ (pageNum - 1) * pageSize + scope.$index + 1 }}</span>
         </template>
@@ -60,29 +42,24 @@
         type="selection"
         :reserve-selection="true"
         :selectable="checkSelectable"
-        width="55"
-      ></el-table-column>
+        width="55"></el-table-column>
       <el-table-column
         label="角色编号"
         align="center"
-        prop="roleId"
-      />
+        prop="roleId"/>
       <el-table-column
         label="角色名称"
         align="center"
-        prop="roleName"
-      />
+        prop="roleName"/>
       <el-table-column
         label="权限字符"
         align="center"
-        prop="roleKey"
-      />
+        prop="roleKey"/>
       <el-table-column
         label="创建时间"
         align="center"
         prop="createTime"
-        width="180"
-      >
+        width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime) }}</span>
         </template>
@@ -93,16 +70,11 @@
       v-show="total > 0"
       :total="total"
       :page.sync="pageNum"
-      :limit.sync="pageSize"
-    />
+      :limit.sync="pageSize"/>
 
     <el-form label-width="100px">
       <el-form-item style="text-align: center; margin-left: -120px; margin-top: 30px">
-        <el-button
-          type="primary"
-          @click="submitForm()"
-          >提交</el-button
-        >
+        <el-button type="primary" @click="submitForm()">提交</el-button>
         <el-button @click="close()">返回</el-button>
       </el-form-item>
     </el-form>
@@ -110,11 +82,33 @@
 </template>
 
 <script>
+/**
+ * 组件名称：AuthRole
+ * 功能说明：用户分配角色页面，分页勾选并提交用户角色
+ * 研发时间：2024/01/22
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import { getAuthRole, updateAuthRole } from '@/api/system/user'
 
-export default {
+export default
+{
   name: 'AuthRole',
-  data() {
+
+  data()
+  {
     return {
       // 遮罩层
       loading: true,
@@ -130,17 +124,24 @@ export default {
       form: {},
     }
   },
-  created() {
+
+  created()
+  {
     const userId = this.$route.params && this.$route.params.userId
-    if (userId) {
+    if (userId)
+    {
       this.loading = true
-      getAuthRole(userId).then((response) => {
+      getAuthRole(userId).then((response) =>
+      {
         this.form = response.user
         this.roles = response.roles
         this.total = this.roles.length
-        this.$nextTick(() => {
-          this.roles.forEach((row) => {
-            if (row.flag) {
+        this.$nextTick(() =>
+        {
+          this.roles.forEach((row) =>
+          {
+            if (row.flag)
+            {
               this.$refs.table.toggleRowSelection(row)
             }
           })
@@ -149,36 +150,72 @@ export default {
       })
     }
   },
-  methods: {
-    /** 单击选中行数据 */
-    clickRow(row) {
-      if (this.checkSelectable(row)) {
+
+  methods:
+  {
+    /**
+     * 单击选中行数据
+     * @param {Object} row - 行数据
+     */
+    clickRow(row)
+    {
+      if (this.checkSelectable(row))
+      {
         this.$refs.table.toggleRowSelection(row)
       }
     },
+
     // 多选框选中数据
-    handleSelectionChange(selection) {
+    /**
+     * 多选框选中数据
+     * @param {Array} selection - 选中的行数据
+     */
+    handleSelectionChange(selection)
+    {
       this.roleIds = selection.map((item) => item.roleId)
     },
+
     // 保存选中的数据编号
-    getRowKey(row) {
+    /**
+     * 保存选中的数据编号
+     * @param {Object} row - 行数据
+     * @returns {Number} 角色编号
+     */
+    getRowKey(row)
+    {
       return row.roleId
     },
+
     // 检查角色状态
-    checkSelectable(row) {
+    /**
+     * 检查角色状态是否可选
+     * @param {Object} row - 行数据
+     * @returns {Boolean} 是否可选中
+     */
+    checkSelectable(row)
+    {
       return row.status === '0' ? true : false
     },
-    /** 提交按钮 */
-    submitForm() {
+
+    /**
+     * 提交按钮
+     */
+    submitForm()
+    {
       const userId = this.form.userId
       const roleIds = this.roleIds.join(',')
-      updateAuthRole({ userId: userId, roleIds: roleIds }).then(() => {
+      updateAuthRole({ userId: userId, roleIds: roleIds }).then(() =>
+      {
         this.$modal.msgSuccess('授权成功')
         this.close()
       })
     },
-    /** 关闭按钮 */
-    close() {
+
+    /**
+     * 关闭按钮
+     */
+    close()
+    {
       const obj = { path: '/system/user' }
       this.$tab.closeOpenPage(obj)
     },

@@ -1,3 +1,17 @@
+<style lang="scss" scoped>
+.access-map { display: grid; grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr) 84px minmax(0, 1fr); align-items: stretch; }
+.access-node { min-width: 0; padding: 14px 16px; background: var(--oauth-fill-color-lighter); border: 1px solid var(--oauth-border-color-lighter); border-radius: 8px; }
+.node-label { display: block; margin-bottom: 7px; color: var(--oauth-color-primary); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; }
+.access-node strong, .access-node small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.access-node strong { color: var(--oauth-text-color-primary); font-size: 14px; }
+.access-node small { margin-top: 5px; color: var(--oauth-text-color-secondary); font-size: 12px; }
+.access-link { display: flex; color: var(--oauth-text-color-secondary); font-size: 12px; align-items: center; justify-content: center; gap: 4px; }
+@media (max-width: 768px) {
+  .access-map { grid-template-columns: 1fr; }
+  .access-link { min-height: 34px; transform: rotate(90deg); }
+}
+</style>
+
 <template>
   <div class="access-map">
     <div class="access-node">
@@ -5,30 +19,18 @@
       <strong>{{ application || '尚未命名' }}</strong>
       <small>{{ applicationType }}</small>
     </div>
-    <div
-      class="access-link"
-      aria-hidden="true"
-    >
+    <div class="access-link" aria-hidden="true">
       <span>申请</span>
-      <i
-        class="el-icon el-icon-right"
-        aria-hidden="true"
-      ></i>
+      <i class="el-icon el-icon-right" aria-hidden="true"></i>
     </div>
     <div class="access-node">
       <span class="node-label">权限</span>
       <strong>{{ permissionSummary }}</strong>
       <small>{{ permissionHint }}</small>
     </div>
-    <div
-      class="access-link"
-      aria-hidden="true"
-    >
+    <div class="access-link" aria-hidden="true">
       <span>访问</span>
-      <i
-        class="el-icon el-icon-right"
-        aria-hidden="true"
-      ></i>
+      <i class="el-icon el-icon-right" aria-hidden="true"></i>
     </div>
     <div class="access-node">
       <span class="node-label">服务</span>
@@ -39,6 +41,29 @@
 </template>
 
 <script setup>
+/**
+ * 组件名称：AccessMap
+ * 功能说明：访问关系图组件，展示应用、权限与服务之间的申请与访问链路
+ * 研发时间：2026/10/01
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ * @prop {String} application - 应用名称
+ * @prop {String} type        - 应用类型
+ * @prop {Array}  permissions - 权限列表
+ * @prop {Array}  resources   - 服务资源列表
+ *
+ * 变量说明：
+ *
+ * 事件说明：
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import { computed } from 'vue'
 const props = defineProps({
   application: { type: String, default: '' },
@@ -47,81 +72,36 @@ const props = defineProps({
   resources: { type: Array, default: () => [] },
 })
 
+/**
+ * 应用类型描述
+ */
 const applicationType = computed(() =>
   props.type === 'public' ? '网页或移动端应用' : '后端服务应用'
 )
+
+/**
+ * 权限摘要
+ */
 const permissionSummary = computed(() => props.permissions.slice(0, 2).join('、') || '尚未选择')
+
+/**
+ * 权限补充提示
+ */
 const permissionHint = computed(() =>
   props.permissions.length > 2
     ? `另有 ${props.permissions.length - 2} 项权限`
     : '应用可以申请的信息'
 )
+
+/**
+ * 服务资源摘要
+ */
 const resourceSummary = computed(() => props.resources.slice(0, 2).join('、') || '仅身份信息')
+
+/**
+ * 服务资源补充提示
+ */
 const resourceHint = computed(() =>
   props.resources.length > 2 ? `另有 ${props.resources.length - 2} 个服务` : '令牌可以访问的目标'
 )
 </script>
-
-<style scoped>
-.access-map {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr) 84px minmax(0, 1fr);
-  align-items: stretch;
-}
-
-.access-node {
-  min-width: 0;
-  padding: 14px 16px;
-  background: var(--oauth-fill-color-lighter);
-  border: 1px solid var(--oauth-border-color-lighter);
-  border-radius: 8px;
-}
-
-.node-label {
-  display: block;
-  margin-bottom: 7px;
-  color: var(--oauth-color-primary);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-}
-
-.access-node strong,
-.access-node small {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.access-node strong {
-  color: var(--oauth-text-color-primary);
-  font-size: 14px;
-}
-
-.access-node small {
-  margin-top: 5px;
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-.access-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-@media (max-width: 768px) {
-  .access-map {
-    grid-template-columns: 1fr;
-  }
-
-  .access-link {
-    min-height: 34px;
-    transform: rotate(90deg);
-  }
-}
-</style>

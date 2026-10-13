@@ -204,21 +204,6 @@ class CliPluginRuntimeService:
             failure_code=self.runtime_error_code,
         ).to_payload()
 
-    async def diagnose_plugin_with_runtime(self, plugin_id: str) -> dict[str, object]:
-        """
-        在静态诊断包上附加服务 worker 的只读快照，保留原诊断成功语义。
-
-        :param plugin_id: 待诊断的插件 ID
-        :return: 包含静态检查及独立运行观测的诊断包
-        """
-        from plugins.core.runtime.diagnostics_query import read_cli_runtime_diagnostics  # noqa: PLC0415
-
-        payload = await self.core_runtime.diagnose_plugin(plugin_id)
-        payload['runtime'] = await read_cli_runtime_diagnostics(
-            plugin_id, backend_root=Path(self._resolve_runtime_environment().get_backend_dir())
-        )
-        return payload
-
     def lock_plugin_dependencies(
         self,
         plugin_id: str,
@@ -253,12 +238,6 @@ class CliPluginRuntimeService:
             lockfile_template = PluginDependencyLockfileTemplateBuilder.build(
                 discovered_plugin.manifest,
                 offline_dir=offline_dir or None,
-                frontend_root=runtime_environment.get_frontend_dir(),
-                frontend_framework=(
-                    runtime_environment.get_frontend_framework()
-                    if discovered_plugin.manifest.dependencies.frontend
-                    else 'auto'
-                ),
             )
             if resolved_output_path.exists() and not overwrite and not dry_run:
                 return PluginDependencyLockPayloadBuilder.build_exists_payload(plugin_id, resolved_output_path)
@@ -469,7 +448,7 @@ class CliPluginRuntimeService:
         job: bool = True,
         config: bool = True,
         test: bool = True,
-        frontend_framework: str = 'auto',
+        frontend_version: str = 'auto',
         dry_run: bool = False,
     ) -> dict[str, object]:
         """
@@ -484,7 +463,7 @@ class CliPluginRuntimeService:
         :param job: 是否创建定时任务示例
         :param config: 是否创建配置项示例
         :param test: 是否创建测试样例
-        :param frontend_framework: 前端框架标识，auto 表示自动识别；源码模板仅支持 vue2、vue3
+        :param frontend_version: 前端 Vue 版本，支持 auto、vue2、vue3
         :param dry_run: 是否仅预演
         :return: 插件创建结果负载
         """
@@ -493,7 +472,6 @@ class CliPluginRuntimeService:
             scaffold = PluginScaffoldBuilder(
                 Path(runtime_environment.get_backend_dir()),
                 frontend_root=Path(runtime_environment.get_frontend_dir()),
-                frontend_framework_resolver=runtime_environment.get_frontend_framework,
             )
             scaffold_plan = scaffold.build_plan(
                 plugin_id,
@@ -505,7 +483,7 @@ class CliPluginRuntimeService:
                 job=job,
                 config=config,
                 test=test,
-                frontend_framework=frontend_framework,
+                frontend_version=frontend_version,
             )
             if scaffold_plan['conflicts']:
                 return PluginScaffoldBuilder.build_conflict_payload(

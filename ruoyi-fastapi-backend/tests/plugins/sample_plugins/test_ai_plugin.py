@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from cli.runtime.plugin.scaffold import PluginFrontendVersionResolver
 from exceptions.exception import ServiceException
 from plugins.ai.dao.ai_chat_dao import AiChatConfigDao
 from plugins.ai.dao.ai_model_dao import AiModelDao
@@ -15,6 +16,8 @@ from plugins.core.validation.structure import PluginStructureChecker
 
 BACKEND_ROOT = Path(__file__).resolve().parents[3]
 PROJECT_ROOT = BACKEND_ROOT.parent
+FRONTEND_ROOT = PROJECT_ROOT / 'ruoyi-fastapi-frontend'
+FRONTEND_VERSION = PluginFrontendVersionResolver.resolve(FRONTEND_ROOT)
 
 EXPECTED_AI_PERMISSIONS = {
     'ai:model:list',
@@ -85,26 +88,25 @@ def test_ai_plugin_template_can_be_discovered() -> None:
     assert plugin.manifest.config.items == []
 
 
+@pytest.mark.skipif(FRONTEND_VERSION != 'vue2', reason='当前项目不是 Vue 2 前端')
 def test_ai_plugin_vue2_frontend_dependencies() -> None:
     """校验 Vue 2 项目的 AI 插件声明 Vue 2 专属前端依赖。"""
     plugin = PluginScanner(BACKEND_ROOT / 'plugins').load_manifest(BACKEND_ROOT / 'plugins' / 'ai' / 'plugin.yaml')
 
-    dependencies = plugin.manifest.dependencies.resolve_frontend('vue2')
-    assert set(dependencies.npm) == set(EXPECTED_AI_VUE2_NPM_DEPENDENCIES)
-    assert dependencies.npm_dev == []
+    assert plugin.manifest.dependencies.npm == EXPECTED_AI_VUE2_NPM_DEPENDENCIES
+    assert plugin.manifest.dependencies.npm_dev == []
 
 
+@pytest.mark.skipif(FRONTEND_VERSION != 'vue3', reason='当前项目不是 Vue 3 前端')
 def test_ai_plugin_vue3_frontend_dependencies() -> None:
     """校验 Vue 3 项目的 AI 插件声明 Vue 3 专属前端依赖。"""
     plugin = PluginScanner(BACKEND_ROOT / 'plugins').load_manifest(BACKEND_ROOT / 'plugins' / 'ai' / 'plugin.yaml')
 
-    dependencies = plugin.manifest.dependencies.resolve_frontend('vue3')
-    assert set(dependencies.npm) == set(EXPECTED_AI_VUE3_NPM_DEPENDENCIES)
-    assert dependencies.npm_dev == EXPECTED_AI_VUE3_NPM_DEV_DEPENDENCIES
+    assert plugin.manifest.dependencies.npm == EXPECTED_AI_VUE3_NPM_DEPENDENCIES
+    assert plugin.manifest.dependencies.npm_dev == EXPECTED_AI_VUE3_NPM_DEV_DEPENDENCIES
 
 
-@pytest.mark.parametrize('frontend_framework', ['vue2', 'vue3'])
-def test_ai_plugin_runtime_paths_exist(frontend_framework: str) -> None:
+def test_ai_plugin_runtime_paths_exist() -> None:
     """校验 AI 插件后端和前端运行路径存在。"""
     plugin = PluginScanner(BACKEND_ROOT / 'plugins').load_manifest(BACKEND_ROOT / 'plugins' / 'ai' / 'plugin.yaml')
     registry = PluginRegistry.build(
@@ -125,11 +127,10 @@ def test_ai_plugin_runtime_paths_exist(frontend_framework: str) -> None:
     assert registry.get_enabled_entity_do_dirs() == [BACKEND_ROOT / 'plugins' / 'ai' / 'entity' / 'do']
     assert (BACKEND_ROOT / 'plugins' / 'ai' / 'controller').is_dir()
     assert (BACKEND_ROOT / 'plugins' / 'ai' / 'entity' / 'do').is_dir()
-    frontend_root = PROJECT_ROOT / 'ruoyi-fastapi-frontend' / frontend_framework / 'web'
-    assert (frontend_root / 'plugins' / 'ai' / 'views' / 'model' / 'index.vue').is_file()
-    assert (frontend_root / 'plugins' / 'ai' / 'views' / 'chat' / 'index.vue').is_file()
-    assert not (frontend_root / 'src' / 'api' / 'ai').exists()
-    assert not (frontend_root / 'src' / 'views' / 'ai').exists()
+    assert (FRONTEND_ROOT / 'plugins' / 'ai' / 'views' / 'model' / 'index.vue').is_file()
+    assert (FRONTEND_ROOT / 'plugins' / 'ai' / 'views' / 'chat' / 'index.vue').is_file()
+    assert not (FRONTEND_ROOT / 'src' / 'api' / 'ai').exists()
+    assert not (FRONTEND_ROOT / 'src' / 'views' / 'ai').exists()
 
 
 def test_ai_plugin_structure_check_passes() -> None:

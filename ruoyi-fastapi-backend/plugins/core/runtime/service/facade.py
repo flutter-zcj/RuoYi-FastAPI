@@ -88,7 +88,6 @@ class PluginRuntimeService:
         resolved_dependency_checker = dependency_checker or PluginDependencyChecker(
             npm_inspector=NpmDependencyInspector(frontend_root=resolved_environment.get_frontend_dir()),
             frontend_mode=resolved_environment.get_frontend_mode(),
-            runtime_environment=resolved_environment,
         )
         gateway_overrides = gateways or PluginRuntimeGatewayOverrides()
         self._replace_dependencies(
@@ -116,6 +115,7 @@ class PluginRuntimeService:
             )
         )
         self.lifecycle_lock = lifecycle_lock or NoopPluginLifecycleLock()
+        self._background_audit_tasks: set[asyncio.Task[None]] = set()
 
     def _replace_dependencies(self, dependencies: PluginRuntimeDependencies) -> None:
         """
@@ -160,7 +160,6 @@ class PluginRuntimeService:
                     frontend_root=self.dependencies.runtime_environment.get_frontend_dir(),
                 ),
                 frontend_mode=self.dependencies.runtime_environment.get_frontend_mode(),
-                runtime_environment=self.dependencies.runtime_environment,
             )
         )
 
@@ -463,37 +462,54 @@ class PluginRuntimeService:
         :param output_callback: 依赖安装实时输出回调
         :return: 插件依赖安装负载
         """
-
-        def install_dependencies() -> PluginDependencyInstallResponse:
-            if output_callback is None:
-                return installer(plugin_id, dry_run=dry_run, policy_config=policy_config, confirmed=confirmed)
-            return installer(
+        if output_callback is None:
+            dependency_payload = installer(
+                plugin_id,
+                dry_run=dry_run,
+                policy_config=policy_config,
+                confirmed=confirmed,
+            )
+        else:
+            dependency_payload = installer(
                 plugin_id,
                 dry_run=dry_run,
                 policy_config=policy_config,
                 confirmed=confirmed,
                 output_callback=output_callback,
             )
+        payload = cast('PluginDependencyInstallResponse', dependency_payload)
+        if record_operation_log and not dry_run:
+            self._record_plugin_operation_log_sync(payload, dry_run=False, continue_on_error=False)
+        return payload
 
-        async def execute_with_source_check() -> PluginDependencyInstallResponse:
-            # 来源查询与审计共用同一个循环，避免异步连接池复用已关闭loop的连接。
-            blocked = await self.context.guard_artifact_operation(
-                plugin_id, 'dependency_install', check_capability=False
-            )
-            if blocked:
-                return blocked
-            payload = install_dependencies()
-            if record_operation_log:
-                await self.record_plugin_operation_log(payload, dry_run=False, continue_on_error=False)
-            return payload
+    def _record_plugin_operation_log_sync(
+        self,
+        payload: Mapping[str, object],
+        *,
+        dry_run: bool,
+        continue_on_error: bool,
+    ) -> None:
+        """
+        从同步入口记录插件操作审计日志。
 
-        if dry_run:
-            return install_dependencies()
+        :param payload: 操作结果负载
+        :param dry_run: 是否预演
+        :param continue_on_error: 失败后是否继续
+        :return: None
+        """
+        record_coro = self.record_plugin_operation_log(
+            payload,
+            dry_run=dry_run,
+            continue_on_error=continue_on_error,
+        )
         try:
-            asyncio.get_running_loop()
+            running_loop = asyncio.get_running_loop()
         except RuntimeError:
-            return asyncio.run(execute_with_source_check())
-        return self.context.build_dependency_install_event_loop_blocked_payload(plugin_id)
+            asyncio.run(record_coro)
+            return
+        task = running_loop.create_task(record_coro)
+        self._background_audit_tasks.add(task)
+        task.add_done_callback(self._background_audit_tasks.discard)
 
     def install_plugin_dependencies_from_result(
         self,

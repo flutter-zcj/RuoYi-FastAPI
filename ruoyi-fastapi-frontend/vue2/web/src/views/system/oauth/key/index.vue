@@ -1,55 +1,87 @@
+<style lang="scss" scoped>
+.key-overview { display: grid; grid-template-columns: minmax(0, 1fr) 32px minmax(0, 1fr) 32px minmax(0, 1fr); align-items: center; }
+.overview-state { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.overview-icon { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; background: var(--oauth-color-primary-light-9); color: var(--oauth-color-primary); border-radius: 11px; font-size: 18px; }
+.overview-icon.is-success { color: var(--oauth-color-success); background: var(--oauth-color-success-light-9); }
+.overview-icon.is-next { color: var(--oauth-color-warning-dark-2); background: var(--oauth-color-warning-light-9); }
+.overview-state.is-disabled .overview-icon { color: var(--oauth-color-warning-dark-2); background: var(--oauth-color-warning-light-9); }
+.overview-state > div { min-width: 0; }
+.overview-state small, .overview-state strong, .overview-state p { display: block; }
+.overview-state small { font-size: 12px; color: var(--oauth-text-color-secondary); }
+.overview-state strong { margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--oauth-text-color-primary); }
+.overview-state p { margin: 4px 0 0; font-size: 12px; line-height: 1.45; color: var(--oauth-text-color-secondary); }
+.overview-divider { color: var(--oauth-border-color-dark); text-align: center; }
+.result-count { font-size: 13px; color: var(--oauth-text-color-regular); }
+.result-count strong { font-size: 16px; color: var(--oauth-text-color-primary); }
+.key-cell { display: flex; align-items: center; gap: 10px; }
+.key-mark { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; background: var(--oauth-color-primary-light-9); color: var(--oauth-color-primary); border-radius: 9px; }
+.key-mark.is-active { color: var(--oauth-color-success); background: var(--oauth-color-success-light-9); }
+.key-mark.is-retiring { color: var(--oauth-color-warning-dark-2); background: var(--oauth-color-warning-light-9); }
+.key-mark.is-retired { color: var(--oauth-text-color-secondary); background: var(--oauth-fill-color-light); }
+.key-mark.is-compromised { color: var(--oauth-color-danger); background: var(--oauth-color-danger-light-9); }
+.key-cell strong, .key-cell small, .role-cell small, .next-action strong, .next-action small { display: block; }
+.key-cell strong { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--oauth-text-color-primary); }
+.key-cell small, .role-cell small, .next-action small { margin-top: 4px; font-size: 12px; line-height: 1.45; color: var(--oauth-text-color-secondary); }
+.timeline-cell { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.timeline-cell span { font-size: 13px; color: var(--oauth-text-color-primary); }
+.timeline-cell small { display: block; margin-bottom: 4px; font-size: 12px; color: var(--oauth-text-color-secondary); }
+.next-action strong { font-size: 13px; color: var(--oauth-text-color-primary); }
+.rotation-preview { display: grid; grid-template-columns: 1fr 36px 1fr 36px 1fr; align-items: center; margin-bottom: 24px; padding: 16px; background: var(--oauth-fill-color-light); border-radius: 9px; }
+.rotation-preview > div { display: grid; grid-template-columns: 30px minmax(0, 1fr); column-gap: 9px; align-items: center; }
+.rotation-preview span { display: grid; place-items: center; grid-row: 1 / span 2; width: 30px; height: 30px; background: var(--oauth-color-primary-light-9); color: var(--oauth-color-primary); border-radius: 50%; font-weight: 700; }
+.rotation-preview strong, .rotation-preview small { display: block; }
+.rotation-preview strong { font-size: 13px; color: var(--oauth-text-color-primary); }
+.rotation-preview small { margin-top: 3px; font-size: 12px; color: var(--oauth-text-color-secondary); }
+.rotation-preview i { height: 1px; background: var(--oauth-border-color); }
+.form-section + .form-section { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--oauth-border-color-lighter); }
+.form-section h3 { margin: 0; font-size: 16px; color: var(--oauth-text-color-primary); }
+.form-section > p { margin: 6px 0 18px; font-size: 13px; color: var(--oauth-text-color-secondary); }
+.algorithm-value { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 32px; }
+.algorithm-value strong { padding: 3px 9px; background: var(--oauth-color-primary-light-9); color: var(--oauth-color-primary); border-radius: 5px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.algorithm-value span { font-size: 12px; color: var(--oauth-text-color-secondary); }
+@media (max-width: 900px) {
+  .key-overview { grid-template-columns: 1fr; gap: 16px; }
+  .overview-divider { display: none; }
+}
+@media (max-width: 640px) {
+  .rotation-form :deep(.el-form-item) { display: block; }
+  .rotation-form :deep(.el-form-item__label) { display: flex; width: auto !important; margin-bottom: 7px; }
+  .rotation-preview { grid-template-columns: 1fr; gap: 12px; }
+  .rotation-preview i { display: none; }
+}
+</style>
+
 <template>
   <div class="oauth-route-page">
     <PageFrame
       section="安全运维"
       title="签名密钥"
-      description="管理系统用来证明身份凭据真实可信的签名密钥，并通过重叠验证窗口安全完成轮换。"
-    >
+      description="管理系统用来证明身份凭据真实可信的签名密钥，并通过重叠验证窗口安全完成轮换。">
       <template #actions>
         <el-button
           type="primary"
           icon="el-icon-refresh-right"
           v-hasPermi="['system:oauthKey:rotate']"
-          @click="openRotation"
-        >
+          @click="openRotation">
           安排密钥轮换
         </el-button>
       </template>
 
       <template #context>
         <div class="key-overview">
-          <div
-            class="overview-state"
-            :class="{ 'is-disabled': !ready }"
-          >
-            <span class="overview-icon"
-              ><i
-                class="el-icon el-icon-lock"
-                aria-hidden="true"
-              ></i
-            ></span>
+          <div class="overview-state" :class="{ 'is-disabled': !ready }">
+            <span class="overview-icon"><i class="el-icon el-icon-lock" aria-hidden="true"></i></span>
             <div>
               <small>认证服务</small>
               <strong>{{ serviceStatus.title }}</strong>
               <p>{{ serviceStatus.description }}</p>
             </div>
           </div>
-          <div
-            class="overview-divider"
-            aria-hidden="true"
-          >
-            <i
-              class="el-icon el-icon-right"
-              aria-hidden="true"
-            ></i>
+          <div class="overview-divider" aria-hidden="true">
+            <i class="el-icon el-icon-right" aria-hidden="true"></i>
           </div>
           <div class="overview-state">
-            <span class="overview-icon is-success"
-              ><i
-                class="el-icon el-icon-key"
-                aria-hidden="true"
-              ></i
-            ></span>
+            <span class="overview-icon is-success"><i class="el-icon el-icon-key" aria-hidden="true"></i></span>
             <div>
               <small>当前签名密钥</small>
               <strong>{{ activeKey?.kid || '尚未激活' }}</strong>
@@ -62,22 +94,11 @@
               </p>
             </div>
           </div>
-          <div
-            class="overview-divider"
-            aria-hidden="true"
-          >
-            <i
-              class="el-icon el-icon-right"
-              aria-hidden="true"
-            ></i>
+          <div class="overview-divider" aria-hidden="true">
+            <i class="el-icon el-icon-right" aria-hidden="true"></i>
           </div>
           <div class="overview-state">
-            <span class="overview-icon is-next"
-              ><i
-                class="el-icon el-icon-time"
-                aria-hidden="true"
-              ></i
-            ></span>
+            <span class="overview-icon is-next"><i class="el-icon el-icon-time" aria-hidden="true"></i></span>
             <div>
               <small>下一次轮换</small>
               <strong>{{ nextKey?.kid || '尚未安排' }}</strong>
@@ -94,34 +115,20 @@
       </template>
 
       <template #toolbar>
-        <span class="result-count"
-          >共 <strong>{{ total }}</strong> 把密钥</span
-        >
+        <span class="result-count">共 <strong>{{ total }}</strong> 把密钥</span>
         <right-toolbar
           :show-search="false"
-          @queryTable="getList"
-        />
+          @queryTable="getList"/>
       </template>
 
       <el-table
         v-loading="loading"
         :data="rows"
-        row-key="kid"
-      >
-        <el-table-column
-          label="密钥"
-          min-width="250"
-        >
+        row-key="kid">
+        <el-table-column label="密钥" min-width="250">
           <template #default="scope">
             <div class="key-cell">
-              <span
-                class="key-mark"
-                :class="`is-${scope.row.status}`"
-                ><i
-                  class="el-icon el-icon-key"
-                  aria-hidden="true"
-                ></i
-              ></span>
+              <span class="key-mark" :class="`is-${scope.row.status}`"><i class="el-icon el-icon-key" aria-hidden="true"></i></span>
               <span>
                 <strong>{{ scope.row.kid }}</strong>
                 <small>{{ scope.row.fingerprint || publicFingerprint(scope.row.publicJwk) }}</small>
@@ -129,54 +136,33 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column
-          label="当前作用"
-          min-width="190"
-        >
+        <el-table-column label="当前作用" min-width="190">
           <template #default="scope">
             <div class="role-cell">
               <el-tag :type="statusType(scope.row.status)">{{
                 statusText(scope.row.status)
-              }}</el-tag
-              ><small>{{ roleText(scope.row.status) }}</small>
+              }}</el-tag><small>{{ roleText(scope.row.status) }}</small>
             </div>
           </template>
         </el-table-column>
         <el-table-column
           label="签名方式"
           width="110"
-          align="center"
-        >
-          <template #default="scope"
-            ><el-tag
-              type="info"
-              effect="plain"
-              >{{ scope.row.alg }}</el-tag
-            ></template
-          >
+          align="center">
+          <template #default="scope"><el-tag type="info" effect="plain">{{ scope.row.alg }}</el-tag></template>
         </el-table-column>
-        <el-table-column
-          label="生命周期"
-          min-width="280"
-        >
+        <el-table-column label="生命周期" min-width="280">
           <template #default="scope">
             <div class="timeline-cell">
               <span><small>公开给应用</small>{{ parseTime(scope.row.publishAt) || '—' }}</span>
-              <span
-                ><small>{{ scope.row.status === 'pending' ? '计划开始签名' : '开始签名' }}</small
-                >{{ parseTime(scope.row.signingStartAt) || '—' }}</span
-              >
+              <span><small>{{ scope.row.status === 'pending' ? '计划开始签名' : '开始签名' }}</small>{{ parseTime(scope.row.signingStartAt) || '—' }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column
-          label="下一步"
-          min-width="220"
-        >
+        <el-table-column label="下一步" min-width="220">
           <template #default="scope">
             <div class="next-action">
-              <strong>{{ nextActionText(scope.row) }}</strong
-              ><small>{{ nextActionTime(scope.row) }}</small>
+              <strong>{{ nextActionText(scope.row) }}</strong><small>{{ nextActionTime(scope.row) }}</small>
             </div>
           </template>
         </el-table-column>
@@ -184,52 +170,43 @@
           label="操作"
           fixed="right"
           width="150"
-          align="center"
-        >
+          align="center">
           <template #default="scope">
             <div class="table-actions">
               <el-tooltip
                 v-if="scope.row.status === 'pending' && activationDisabledReason(scope.row)"
                 :content="activationDisabledReason(scope.row)"
-                placement="top"
-              >
+                placement="top">
                 <span>
                   <el-button
                     type="text"
                     icon="el-icon-time"
                     disabled
-                    v-hasPermi="['system:oauthKey:activate']"
-                  >
+                    v-hasPermi="['system:oauthKey:activate']">
                     等待公开
                   </el-button>
                 </span>
               </el-tooltip>
               <el-button
-                type="text"
                 v-else-if="scope.row.status === 'pending'"
+                type="text"
                 icon="el-icon-circle-check"
                 v-hasPermi="['system:oauthKey:activate']"
-                @click="activate(scope.row)"
-                >开始使用</el-button
-              >
+                @click="activate(scope.row)">开始使用</el-button>
               <el-button
                 class="oauth-button-warning"
                 type="text"
                 v-if="scope.row.status === 'active'"
                 icon="el-icon-video-pause"
                 v-hasPermi="['system:oauthKey:retire']"
-                @click="retire(scope.row)"
-                >停止签名</el-button
-              >
+                @click="retire(scope.row)">停止签名</el-button>
               <el-button
                 class="oauth-button-danger"
                 type="text"
                 v-if="scope.row.status === 'retired'"
                 icon="el-icon-delete"
                 v-hasPermi="['system:oauthKey:retire']"
-                @click="handleDelete(scope.row)"
-                >删除记录</el-button
-              >
+                @click="handleDelete(scope.row)">删除记录</el-button>
             </div>
           </template>
         </el-table-column>
@@ -238,9 +215,7 @@
             <el-button
               type="primary"
               v-hasPermi="['system:oauthKey:rotate']"
-              @click="openRotation"
-              >创建第一把密钥</el-button
-            >
+              @click="openRotation">创建第一把密钥</el-button>
           </el-empty>
         </template>
       </el-table>
@@ -249,8 +224,7 @@
         :page.sync="query.pageNum"
         :limit.sync="query.pageSize"
         :total="total"
-        @pagination="getList"
-      />
+        @pagination="getList"/>
     </PageFrame>
 
     <el-dialog
@@ -259,47 +233,33 @@
       title="安排签名密钥轮换"
       width="min(780px, calc(100vw - 48px))"
       append-to-body
-      :close-on-click-modal="false"
-    >
-      <div
-        class="rotation-preview"
-        aria-label="密钥轮换过程"
-      >
+      :close-on-click-modal="false">
+      <div class="rotation-preview" aria-label="密钥轮换过程">
         <div><span>1</span><strong>先公开</strong><small>应用提前拿到公钥</small></div>
-        <i aria-hidden="true" />
+        <i aria-hidden="true"/>
         <div><span>2</span><strong>再接管签名</strong><small>新凭据改用新密钥</small></div>
-        <i aria-hidden="true" />
+        <i aria-hidden="true"/>
         <div><span>3</span><strong>保留旧公钥</strong><small>旧凭据仍可验证到期</small></div>
       </div>
 
       <el-form
+        class="rotation-form"
         ref="formRef"
         :model="form"
         :rules="rules"
-        label-width="160px"
-        class="rotation-form"
-      >
+        label-width="160px">
         <section class="form-section">
           <h3>轮换标识</h3>
           <p>给这次轮换一个易识别的编号，便于在日志和故障排查中定位。</p>
           <el-form-item prop="kid">
-            <template #label
-              ><FieldLabel
-                label="密钥编号"
-                help="公开密钥列表中的唯一编号。建议包含年份、月份或用途，例如 2026-09-primary。"
-            /></template>
+            <template #label><FieldLabel label="密钥编号" help="公开密钥列表中的唯一编号。建议包含年份、月份或用途，例如 2026-09-primary。"/></template>
             <el-input
               v-model="form.kid"
               maxlength="128"
-              placeholder="例如：2026-09-primary"
-            />
+              placeholder="例如：2026-09-primary"/>
           </el-form-item>
           <el-form-item>
-            <template #label
-              ><FieldLabel
-                label="签名方式"
-                help="RS256 是应用兼容性较好的非对称签名方式。应用只会获取公钥，无法据此伪造凭据。"
-            /></template>
+            <template #label><FieldLabel label="签名方式" help="RS256 是应用兼容性较好的非对称签名方式。应用只会获取公钥，无法据此伪造凭据。"/></template>
             <div class="algorithm-value">
               <strong>RS256</strong><span>私钥不会在此页面展示或导出</span>
             </div>
@@ -310,41 +270,26 @@
           <h3>生效安排</h3>
           <p>先公开公钥，再开始使用它签名，给接入应用留出同步时间。</p>
           <el-form-item prop="publishAt">
-            <template #label
-              ><FieldLabel
-                label="公开公钥时间"
-                help="从这个时间起，接入应用可以在公开密钥列表中获取新公钥，但系统还不会使用它签发新凭据。"
-            /></template>
+            <template #label><FieldLabel label="公开公钥时间" help="从这个时间起，接入应用可以在公开密钥列表中获取新公钥，但系统还不会使用它签发新凭据。"/></template>
             <BusinessDateTimePicker
               v-model="form.publishAt"
-              label="公开公钥时间"
-            />
+              label="公开公钥时间"/>
           </el-form-item>
           <el-form-item prop="activateAt">
-            <template #label
-              ><FieldLabel
-                label="开始签名时间"
-                help="从这个时间起，新签发的身份和访问凭据会改用新密钥。该时间不能早于公开公钥时间。"
-            /></template>
+            <template #label><FieldLabel label="开始签名时间" help="从这个时间起，新签发的身份和访问凭据会改用新密钥。该时间不能早于公开公钥时间。"/></template>
             <BusinessDateTimePicker
               v-model="form.activateAt"
-              label="开始签名时间"
-            />
+              label="开始签名时间"/>
           </el-form-item>
           <el-form-item>
-            <template #label
-              ><FieldLabel
-                label="变更说明"
-                help="记录轮换原因或关联工单，便于后续审计；不会公开给接入应用。"
-            /></template>
+            <template #label><FieldLabel label="变更说明" help="记录轮换原因或关联工单，便于后续审计；不会公开给接入应用。"/></template>
             <el-input
               v-model="form.remark"
               type="textarea"
               :rows="3"
               maxlength="500"
               show-word-limit
-              placeholder="例如：季度例行轮换，关联工单 SEC-1024"
-            />
+              placeholder="例如：季度例行轮换，关联工单 SEC-1024"/>
           </el-form-item>
         </section>
       </el-form>
@@ -353,16 +298,64 @@
         <el-button
           type="primary"
           :loading="saving"
-          @click="rotate"
-          >创建轮换计划</el-button
-        >
+          @click="rotate">创建轮换计划</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
-export default { name: 'OAuthKey' }
+/**
+ * 组件名称：OAuthKey
+ * 功能说明：OAuth 签名密钥管理页面，安排密钥轮换、启用密钥并管理密钥生命周期
+ * 研发时间：2026/10/01
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ * @data {Array}   rows                   - 签名密钥列表数据
+ * @data {Number}  total                  - 签名密钥总条数
+ * @data {Boolean} enabled                - 认证服务是否启用
+ * @data {Boolean} ready                  - 认证服务是否就绪
+ * @data {Boolean} loading                - 列表加载状态
+ * @data {Boolean} saving                 - 保存提交中状态
+ * @data {Boolean} open                   - 轮换表单对话框是否可见
+ * @data {Object}  query                  - 查询参数
+ * @data {Object}  form                   - 轮换表单数据
+ * @data {Object}  activeKey              - 当前签名密钥
+ * @data {Object}  serviceStatus          - 认证服务状态信息
+ * @data {Object}  nextKey                - 下一次轮换密钥
+ * @data {Function} validateActivationTime - 开始签名时间校验
+ * @data {Object}  rules                  - 轮换表单校验规则
+ *
+ * 事件说明：
+ * @event statusText              - 获取签名密钥状态名称
+ * @event statusType              - 获取签名密钥状态标签类型
+ * @event roleText               - 获取密钥当前承担的签名或验证用途
+ * @event publicFingerprint      - 缩略显示RSA公钥模数
+ * @event nextActionText         - 获取密钥后续处理计划
+ * @event nextActionTime         - 显示密钥后续操作的时间条件
+ * @event activationDisabledReason - 检查密钥是否已到允许启用的公开时间
+ * @event getList                - 查询签名密钥列表及认证服务状态
+ * @event openRotation           - 初始化并打开密钥轮换表单
+ * @event rotate                 - 校验时间并提交密钥轮换计划
+ * @event activate               - 确认后启用签名密钥
+ * @event retire                 - 停止使用密钥签发新令牌
+ * @event handleDelete           - 删除按钮操作
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/10/01     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
+export default
+{
+  name: 'OAuthKey'
+}
 </script>
 
 <script setup>
@@ -425,7 +418,8 @@ const nextKey = computed(
       )[0]
 )
 
-const validateActivationTime = (_rule, value, callback) => {
+const validateActivationTime = (_rule, value, callback) =>
+{
   if (!value) {
     return callback(new Error('请选择开始签名时间'))
   }
@@ -445,8 +439,13 @@ const rules = {
   activateAt: [{ validator: validateActivationTime, trigger: 'change' }],
 }
 
-/** 获取签名密钥状态名称 */
-function statusText(value) {
+/**
+ * 获取签名密钥状态名称
+ * @param {String} value - 密钥状态
+ * @returns {String} 状态名称
+ */
+function statusText(value)
+{
   return (
     {
       pending: '等待接管',
@@ -458,8 +457,13 @@ function statusText(value) {
   )
 }
 
-/** 获取签名密钥状态标签类型 */
-function statusType(value) {
+/**
+ * 获取签名密钥状态标签类型
+ * @param {String} value - 密钥状态
+ * @returns {String} 状态标签类型
+ */
+function statusType(value)
+{
   return (
     {
       pending: 'primary',
@@ -471,8 +475,13 @@ function statusType(value) {
   )
 }
 
-/** 获取密钥当前承担的签名或验证用途 */
-function roleText(value) {
+/**
+ * 获取密钥当前承担的签名或验证用途
+ * @param {String} value - 密钥状态
+ * @returns {String} 密钥用途说明
+ */
+function roleText(value)
+{
   return (
     {
       pending: '公钥已发布，尚未签发新凭据',
@@ -484,16 +493,26 @@ function roleText(value) {
   )
 }
 
-/** 缩略显示RSA公钥模数 */
-function publicFingerprint(jwk) {
+/**
+ * 缩略显示RSA公钥模数
+ * @param {Object} jwk - 公钥JWK数据
+ * @returns {String} 公钥指纹展示文本
+ */
+function publicFingerprint(jwk)
+{
   if (!jwk?.n) {
     return '公开指纹尚未提供'
   }
   return `公开指纹 RSA · ${jwk.n.slice(0, 18)}…`
 }
 
-/** 获取密钥后续处理计划 */
-function nextActionText(row) {
+/**
+ * 获取密钥后续处理计划
+ * @param {Object} row - 密钥行数据
+ * @returns {String} 后续处理计划
+ */
+function nextActionText(row)
+{
   return (
     {
       pending: '等待开始使用',
@@ -505,8 +524,13 @@ function nextActionText(row) {
   )
 }
 
-/** 显示密钥后续操作的时间条件 */
-function nextActionTime(row) {
+/**
+ * 显示密钥后续操作的时间条件
+ * @param {Object} row - 密钥行数据
+ * @returns {String} 后续操作时间条件
+ */
+function nextActionTime(row)
+{
   if (row.status === 'pending') {
     return parseTime(row.signingStartAt) || '需要手动开始使用'
   }
@@ -521,8 +545,13 @@ function nextActionTime(row) {
   return '请查看安全日志'
 }
 
-/** 检查密钥是否已到允许启用的公开时间 */
-function activationDisabledReason(row) {
+/**
+ * 检查密钥是否已到允许启用的公开时间
+ * @param {Object} row - 密钥行数据
+ * @returns {String} 不可启用的原因，空字符串表示可以启用
+ */
+function activationDisabledReason(row)
+{
   const publishAt = new Date(row.publishAt).getTime()
   if (!Number.isFinite(publishAt)) {
     return '公钥公开时间无效，请刷新列表后重试'
@@ -533,8 +562,11 @@ function activationDisabledReason(row) {
   return ''
 }
 
-/** 查询签名密钥列表及认证服务状态 */
-async function getList() {
+/**
+ * 查询签名密钥列表及认证服务状态
+ */
+async function getList()
+{
   loading.value = true
   try {
     const response = await listOidcKeys(query)
@@ -547,8 +579,11 @@ async function getList() {
   }
 }
 
-/** 初始化并打开密钥轮换表单 */
-function openRotation() {
+/**
+ * 初始化并打开密钥轮换表单
+ */
+function openRotation()
+{
   Object.assign(form, {
     alg: 'RS256',
     kid: '',
@@ -560,8 +595,11 @@ function openRotation() {
   nextTick(() => proxy.$refs.formRef?.clearValidate())
 }
 
-/** 校验时间并提交密钥轮换计划 */
-async function rotate() {
+/**
+ * 校验时间并提交密钥轮换计划
+ */
+async function rotate()
+{
   await proxy.$refs.formRef.validate()
   const payload = await serializeTimeFieldsForSubmit(form, ['publishAt', 'activateAt'])
   if (!payload) {
@@ -582,8 +620,12 @@ async function rotate() {
   }
 }
 
-/** 确认后启用签名密钥 */
-async function activate(row) {
+/**
+ * 确认后启用签名密钥
+ * @param {Object} row - 密钥行数据
+ */
+async function activate(row)
+{
   const disabledReason = activationDisabledReason(row)
   if (disabledReason) {
     proxy.$modal.msgWarning(disabledReason)
@@ -602,8 +644,12 @@ async function activate(row) {
   await getList()
 }
 
-/** 停止使用密钥签发新令牌 */
-async function retire(row) {
+/**
+ * 停止使用密钥签发新令牌
+ * @param {Object} row - 密钥行数据
+ */
+async function retire(row)
+{
   await proxy.$modal.confirm(
     `停止使用密钥 ${row.kid} 签发新凭据？它的公钥仍会保留一段时间，用于验证尚未到期的旧凭据。`
   )
@@ -612,8 +658,12 @@ async function retire(row) {
   await getList()
 }
 
-/** 删除按钮操作 */
-async function handleDelete(row) {
+/**
+ * 删除按钮操作
+ * @param {Object} row - 密钥行数据
+ */
+async function handleDelete(row)
+{
   await proxy.$modal.confirm(`删除密钥 ${row.kid} 的记录？请确认所有由它签署的凭据都已到期。`)
   await deleteOidcKey(row.kid)
   proxy.$modal.msgSuccess('密钥记录已删除')
@@ -622,293 +672,3 @@ async function handleDelete(row) {
 
 getList()
 </script>
-
-<style scoped>
-.key-overview {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 32px minmax(0, 1fr) 32px minmax(0, 1fr);
-  align-items: center;
-}
-
-.overview-state {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  min-width: 0;
-}
-
-.overview-icon {
-  display: grid;
-  flex: 0 0 42px;
-  width: 42px;
-  height: 42px;
-  color: var(--oauth-color-primary);
-  background: var(--oauth-color-primary-light-9);
-  border-radius: 11px;
-  font-size: 18px;
-  place-items: center;
-}
-
-.overview-icon.is-success {
-  color: var(--oauth-color-success);
-  background: var(--oauth-color-success-light-9);
-}
-
-.overview-icon.is-next {
-  color: var(--oauth-color-warning-dark-2);
-  background: var(--oauth-color-warning-light-9);
-}
-
-.overview-state.is-disabled .overview-icon {
-  color: var(--oauth-color-warning-dark-2);
-  background: var(--oauth-color-warning-light-9);
-}
-
-.overview-state > div {
-  min-width: 0;
-}
-
-.overview-state small,
-.overview-state strong,
-.overview-state p {
-  display: block;
-}
-
-.overview-state small {
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-.overview-state strong {
-  margin-top: 3px;
-  overflow: hidden;
-  color: var(--oauth-text-color-primary);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.overview-state p {
-  margin: 4px 0 0;
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.overview-divider {
-  color: var(--oauth-border-color-dark);
-  text-align: center;
-}
-
-.result-count {
-  color: var(--oauth-text-color-regular);
-  font-size: 13px;
-}
-
-.result-count strong {
-  color: var(--oauth-text-color-primary);
-  font-size: 16px;
-}
-
-.key-cell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.key-mark {
-  display: grid;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  color: var(--oauth-color-primary);
-  background: var(--oauth-color-primary-light-9);
-  border-radius: 9px;
-  place-items: center;
-}
-
-.key-mark.is-active {
-  color: var(--oauth-color-success);
-  background: var(--oauth-color-success-light-9);
-}
-
-.key-mark.is-retiring {
-  color: var(--oauth-color-warning-dark-2);
-  background: var(--oauth-color-warning-light-9);
-}
-
-.key-mark.is-retired {
-  color: var(--oauth-text-color-secondary);
-  background: var(--oauth-fill-color-light);
-}
-
-.key-mark.is-compromised {
-  color: var(--oauth-color-danger);
-  background: var(--oauth-color-danger-light-9);
-}
-
-.key-cell strong,
-.key-cell small,
-.role-cell small,
-.next-action strong,
-.next-action small {
-  display: block;
-}
-
-.key-cell strong {
-  color: var(--oauth-text-color-primary);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-.key-cell small,
-.role-cell small,
-.next-action small {
-  margin-top: 4px;
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.timeline-cell {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.timeline-cell span {
-  color: var(--oauth-text-color-primary);
-  font-size: 13px;
-}
-
-.timeline-cell small {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-.next-action strong {
-  color: var(--oauth-text-color-primary);
-  font-size: 13px;
-}
-
-.rotation-preview {
-  display: grid;
-  grid-template-columns: 1fr 36px 1fr 36px 1fr;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 16px;
-  background: var(--oauth-fill-color-light);
-  border-radius: 9px;
-}
-
-.rotation-preview > div {
-  display: grid;
-  grid-template-columns: 30px minmax(0, 1fr);
-  column-gap: 9px;
-  align-items: center;
-}
-
-.rotation-preview span {
-  display: grid;
-  grid-row: 1 / span 2;
-  width: 30px;
-  height: 30px;
-  color: var(--oauth-color-primary);
-  background: var(--oauth-color-primary-light-9);
-  border-radius: 50%;
-  font-weight: 700;
-  place-items: center;
-}
-
-.rotation-preview strong,
-.rotation-preview small {
-  display: block;
-}
-
-.rotation-preview strong {
-  color: var(--oauth-text-color-primary);
-  font-size: 13px;
-}
-
-.rotation-preview small {
-  margin-top: 3px;
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-.rotation-preview i {
-  height: 1px;
-  background: var(--oauth-border-color);
-}
-
-.form-section + .form-section {
-  margin-top: 24px;
-  padding-top: 22px;
-  border-top: 1px solid var(--oauth-border-color-lighter);
-}
-
-.form-section h3 {
-  margin: 0;
-  color: var(--oauth-text-color-primary);
-  font-size: 16px;
-}
-
-.form-section > p {
-  margin: 6px 0 18px;
-  color: var(--oauth-text-color-secondary);
-  font-size: 13px;
-}
-
-.algorithm-value {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 32px;
-}
-
-.algorithm-value strong {
-  padding: 3px 9px;
-  color: var(--oauth-color-primary);
-  background: var(--oauth-color-primary-light-9);
-  border-radius: 5px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-.algorithm-value span {
-  color: var(--oauth-text-color-secondary);
-  font-size: 12px;
-}
-
-@media (max-width: 900px) {
-  .key-overview {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .overview-divider {
-    display: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .rotation-form :deep(.el-form-item) {
-    display: block;
-  }
-
-  .rotation-form :deep(.el-form-item__label) {
-    display: flex;
-    width: auto !important;
-    margin-bottom: 7px;
-  }
-
-  .rotation-preview {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .rotation-preview i {
-    display: none;
-  }
-}
-</style>

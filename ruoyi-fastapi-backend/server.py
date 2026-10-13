@@ -109,6 +109,7 @@ async def _initialize_application_runtime(app: FastAPI, application_leader: bool
     )
     await RedisUtil.init_sys_dict(app.state.redis)
     await RedisUtil.init_sys_config(app.state.redis)
+    await RedisUtil.init_zgis_table_cache(app.state.redis)
     app.state.application_leader = application_leader
     await _start_background_tasks(app)
 

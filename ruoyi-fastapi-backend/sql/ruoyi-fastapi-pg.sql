@@ -1647,97 +1647,6 @@ comment on column sys_plugin_operation_log.create_time is '创建时间';
 comment on column sys_plugin_operation_log.remark is '备注';
 
 -- ----------------------------
--- 36、插件已验证制品表
--- ----------------------------
-create table if not exists sys_plugin_artifact (
-  digest             varchar(64)    not null,
-  plugin_id          varchar(64)    not null,
-  version            varchar(32)    not null,
-  key_id             varchar(128)   not null,
-  relative_path      varchar(512)   not null,
-  manifest_json      text           not null,
-  created_by         varchar(64)    default null,
-  create_time        timestamp(3) with time zone,
-  primary key (digest)
-);
-create index if not exists idx_sys_plugin_artifact_plugin on sys_plugin_artifact (plugin_id, version);
-comment on table sys_plugin_artifact is '插件已验证制品表';
-comment on column sys_plugin_artifact.digest is '制品SHA256';
-comment on column sys_plugin_artifact.plugin_id is '插件ID';
-comment on column sys_plugin_artifact.version is '制品版本';
-comment on column sys_plugin_artifact.key_id is '签名公钥标识';
-comment on column sys_plugin_artifact.relative_path is '制品存储内不可变相对目录';
-comment on column sys_plugin_artifact.manifest_json is '验证后的清单JSON';
-comment on column sys_plugin_artifact.created_by is '导入者';
-comment on column sys_plugin_artifact.create_time is '创建时间';
-
--- ----------------------------
--- 37、插件目标发布表
--- ----------------------------
-create table if not exists sys_plugin_release (
-  plugin_id          varchar(64)    not null,
-  target_digest      varchar(64)    default null,
-  previous_digest    varchar(64)    default null,
-  prepared_digest    varchar(64)    default null,
-  generation         varchar(32)    not null,
-  expected_workers   integer        not null default 1,
-  prepare_status     varchar(16)    not null default 'idle',
-  prepared_version   varchar(32)    default null,
-  last_error         text           default null,
-  create_by          varchar(64)    default null,
-  update_by          varchar(64)    default null,
-  create_time        timestamp(3) with time zone,
-  update_time        timestamp(3) with time zone,
-  primary key (plugin_id),
-  constraint ck_sys_plugin_release_workers check (expected_workers >= 1),
-  constraint ck_sys_plugin_release_prepare check (prepare_status in ('idle', 'preparing', 'prepared', 'failed'))
-);
-comment on table sys_plugin_release is '插件目标发布表';
-comment on column sys_plugin_release.plugin_id is '插件ID';
-comment on column sys_plugin_release.target_digest is '目标制品SHA256';
-comment on column sys_plugin_release.previous_digest is '上一次目标制品SHA256';
-comment on column sys_plugin_release.prepared_digest is '维护准备成功的制品SHA256';
-comment on column sys_plugin_release.generation is '目标发布代际UUID';
-comment on column sys_plugin_release.expected_workers is '预期宿主worker数量';
-comment on column sys_plugin_release.prepare_status is '维护准备状态';
-comment on column sys_plugin_release.prepared_version is '维护确认的数据结构安装版本';
-comment on column sys_plugin_release.last_error is '维护准备错误';
-comment on column sys_plugin_release.create_by is '创建者';
-comment on column sys_plugin_release.update_by is '更新者';
-comment on column sys_plugin_release.create_time is '创建时间';
-comment on column sys_plugin_release.update_time is '更新时间';
-
--- ----------------------------
--- 38、插件worker加载状态表
--- ----------------------------
-create table if not exists sys_plugin_worker (
-  worker_id          varchar(32)    not null,
-  plugin_id          varchar(64)    not null,
-  artifact_digest    varchar(64)    default null,
-  version            varchar(32)    default null,
-  generation         varchar(32)    default null,
-  state              varchar(16)    not null,
-  heartbeat_time     timestamp(3) with time zone not null,
-  error              text           default null,
-  create_time        timestamp(3) with time zone,
-  update_time        timestamp(3) with time zone,
-  primary key (worker_id, plugin_id),
-  constraint ck_sys_plugin_worker_state check (state in ('starting', 'ready', 'failed', 'stopped'))
-);
-create index if not exists idx_sys_plugin_worker_plugin on sys_plugin_worker (plugin_id, heartbeat_time);
-comment on table sys_plugin_worker is '插件worker加载状态表';
-comment on column sys_plugin_worker.worker_id is '宿主进程UUID';
-comment on column sys_plugin_worker.plugin_id is '插件ID或__runtime__';
-comment on column sys_plugin_worker.artifact_digest is '实际加载的制品SHA256';
-comment on column sys_plugin_worker.version is '实际加载的制品版本';
-comment on column sys_plugin_worker.generation is '实际加载的发布代际UUID';
-comment on column sys_plugin_worker.state is 'worker状态';
-comment on column sys_plugin_worker.heartbeat_time is 'UTC心跳时间';
-comment on column sys_plugin_worker.error is '加载或运行错误';
-comment on column sys_plugin_worker.create_time is '创建时间';
-comment on column sys_plugin_worker.update_time is '更新时间';
-
--- ----------------------------
 -- 统一认证中心相关表清理
 -- ----------------------------
 drop table if exists sys_oauth_audit_archive;
@@ -1758,7 +1667,7 @@ drop table if exists sys_oauth_client;
 drop table if exists sys_identity_subject;
 
 -- ----------------------------
--- 39、统一认证主体关联表
+-- 36、统一认证主体关联表
 -- ----------------------------
 create table sys_identity_subject (
   identity_id   bigserial    not null,
@@ -1808,7 +1717,7 @@ select user_id,
 from seeded_users;
 
 -- ----------------------------
--- 40、OAuth客户端表
+-- 37、OAuth客户端表
 -- ----------------------------
 create table sys_oauth_client (
   client_pk                            bigserial     not null,
@@ -1870,7 +1779,7 @@ comment on column sys_oauth_client.update_time is '更新时间';
 comment on column sys_oauth_client.remark is '备注';
 
 -- ----------------------------
--- 41、OAuth客户端密钥表
+-- 38、OAuth客户端密钥表
 -- ----------------------------
 create table sys_oauth_client_secret (
   secret_id     varchar(36)   not null,
@@ -1904,7 +1813,7 @@ comment on column sys_oauth_client_secret.revoked_by is '撤销者';
 comment on column sys_oauth_client_secret.revoked_at is '撤销时间';
 
 -- ----------------------------
--- 42、OAuth客户端URI表
+-- 39、OAuth客户端URI表
 -- ----------------------------
 create table sys_oauth_client_uri (
   uri_id       bigserial      not null,
@@ -1931,7 +1840,7 @@ comment on column sys_oauth_client_uri.status is '状态（0正常 1停用）';
 comment on column sys_oauth_client_uri.create_time is '创建时间';
 
 -- ----------------------------
--- 43、OAuth资源服务器表
+-- 40、OAuth资源服务器表
 -- ----------------------------
 create table sys_oauth_resource (
   resource_pk               bigserial     not null,
@@ -1973,7 +1882,7 @@ comment on column sys_oauth_resource.update_time is '更新时间';
 comment on column sys_oauth_resource.remark is '备注';
 
 -- ----------------------------
--- 44、OAuth权限范围表
+-- 41、OAuth权限范围表
 -- ----------------------------
 create table sys_oauth_scope (
   scope_pk          bigserial     not null,
@@ -2025,7 +1934,7 @@ insert into sys_oauth_scope values(6, 'dept', '部门', 'identity', null, '["dep
 insert into sys_oauth_scope values(7, 'offline_access', '离线访问', 'identity', null, '[]'::jsonb, 1, 1, '0', 'system', current_timestamp, 'system', current_timestamp, '允许签发 Refresh Token');
 
 -- ----------------------------
--- 45、OAuth客户端和权限范围关联表
+-- 42、OAuth客户端和权限范围关联表
 -- ----------------------------
 create table sys_oauth_client_scope (
   client_pk       bigint       not null,
@@ -2048,7 +1957,7 @@ comment on column sys_oauth_client_scope.claim_filter is 'Client Claim 过滤策
 comment on column sys_oauth_client_scope.create_time is '创建时间';
 
 -- ----------------------------
--- 46、OAuth客户端和资源服务器关联表
+-- 43、OAuth客户端和资源服务器关联表
 -- ----------------------------
 create table sys_oauth_client_resource (
   client_pk    bigint       not null,
@@ -2067,7 +1976,7 @@ comment on column sys_oauth_client_resource.is_default is '是否默认 Resource
 comment on column sys_oauth_client_resource.create_time is '创建时间';
 
 -- ----------------------------
--- 47、用户应用访问控制表
+-- 44、用户应用访问控制表
 -- ----------------------------
 create table sys_oauth_access_policy (
   user_id       bigint        not null,
@@ -2089,7 +1998,7 @@ comment on column sys_oauth_access_policy.update_by is '操作人';
 comment on column sys_oauth_access_policy.update_time is '操作时间';
 
 -- ----------------------------
--- 48、OAuth授权记录表
+-- 45、OAuth授权记录表
 -- ----------------------------
 create table sys_oauth_grant (
   grant_id               varchar(36)   not null,
@@ -2130,7 +2039,7 @@ comment on column sys_oauth_grant.revoke_reason is '撤销原因';
 comment on column sys_oauth_grant.last_used_at is '最近使用时间';
 
 -- ----------------------------
--- 49、OIDC单点登录会话表
+-- 46、OIDC单点登录会话表
 -- ----------------------------
 create table sys_sso_session (
   sid                  varchar(36)   not null,
@@ -2178,7 +2087,7 @@ comment on column sys_sso_session.revoke_reason is '撤销原因';
 comment on column sys_sso_session.create_time is '创建时间';
 
 -- ----------------------------
--- 50、SSO会话与参与应用关联表
+-- 47、SSO会话与参与应用关联表
 -- ----------------------------
 create table sys_sso_session_client (
   sid           varchar(36)                  not null,
@@ -2197,7 +2106,7 @@ comment on column sys_sso_session_client.create_time is '首次授权时间';
 comment on column sys_sso_session_client.last_used_at is '最近授权时间';
 
 -- ----------------------------
--- 51、OAuth刷新令牌表
+-- 48、OAuth刷新令牌表
 -- ----------------------------
 create table sys_oauth_refresh_token (
   token_id              varchar(36)   not null,
@@ -2259,7 +2168,7 @@ comment on column sys_oauth_refresh_token.revoke_reason is '撤销原因';
 comment on column sys_oauth_refresh_token.reuse_detected_at is '重放检测时间';
 
 -- ----------------------------
--- 52、OIDC签名密钥表
+-- 49、OIDC签名密钥表
 -- ----------------------------
 create table sys_oidc_signing_key (
   key_pk                  bigserial      not null,
@@ -2301,7 +2210,7 @@ comment on column sys_oidc_signing_key.create_time is '创建时间';
 comment on column sys_oidc_signing_key.remark is '备注';
 
 -- ----------------------------
--- 53、OAuth审计日志表
+-- 50、OAuth审计日志表
 -- ----------------------------
 create table sys_oauth_audit_log (
   event_id      bigserial     not null,
@@ -2348,7 +2257,7 @@ comment on column sys_oauth_audit_log.detail is '脱敏扩展详情';
 comment on column sys_oauth_audit_log.create_time is '事件时间';
 
 -- ----------------------------
--- 54、OAuth审计归档表
+-- 51、OAuth审计归档表
 -- ----------------------------
 create table sys_oauth_audit_archive (
   event_id      bigint        not null,

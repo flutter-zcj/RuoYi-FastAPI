@@ -1,46 +1,50 @@
+<style lang="scss" scoped>
+.home { overflow-x: hidden; font-family: 'open sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: #676a6c;
+  blockquote { padding: 10px 20px; margin: 0 0 20px; font-size: 17.5px; border-left: 5px solid #eee; }
+  hr { margin-top: 20px; margin-bottom: 20px; border: 0; border-top: 1px solid #eee; }
+  .col-item { margin-bottom: 20px; }
+  ul { padding: 0; margin: 0; }
+  ul { list-style-type: none; }
+  h4 { margin-top: 0px; }
+  h2 { margin-top: 10px; font-size: 26px; font-weight: 100; }
+  p { margin-top: 10px;
+    b { font-weight: 700; }
+  }
+  .update-log {
+    ol { display: block; list-style-type: decimal; margin-block-start: 1em; margin-block-end: 1em; margin-inline-start: 0; margin-inline-end: 0; padding-inline-start: 40px; }
+  }
+}
+</style>
+
 <template>
   <div class="app-container home">
     <el-row :gutter="20">
-      <el-col
-        :sm="24"
-        :lg="24"
-      >
-        <blockquote
-          class="text-warning"
-          style="font-size: 14px"
-        >
+      <el-col :sm="24" :lg="24">
+        <blockquote class="text-warning" style="font-size: 14px">
           领取阿里云通用云产品1888优惠券
           <br />
           <el-link
             href="https://www.aliyun.com/minisite/goods?userCode=brki8iof"
             type="primary"
-            target="_blank"
-            >https://www.aliyun.com/minisite/goods?userCode=brki8iof</el-link
-          >
+            target="_blank">https://www.aliyun.com/minisite/goods?userCode=brki8iof</el-link>
           <br />
           领取腾讯云通用云产品2860优惠券
           <br />
           <el-link
             href="https://cloud.tencent.com/redirect.php?redirect=1025&cps_key=198c8df2ed259157187173bc7f4f32fd&from=console"
             type="primary"
-            target="_blank"
-            >https://cloud.tencent.com/redirect.php?redirect=1025&cps_key=198c8df2ed259157187173bc7f4f32fd&from=console</el-link
-          >
+            target="_blank">https://cloud.tencent.com/redirect.php?redirect=1025&cps_key=198c8df2ed259157187173bc7f4f32fd&from=console</el-link>
           <br />
           阿里云服务器折扣区
           <el-link
             href="http://aly.ruoyi.vip"
             type="primary"
-            target="_blank"
-            >>☛☛点我进入☚☚</el-link
-          >
+            target="_blank">>☛☛点我进入☚☚</el-link>
           &nbsp;&nbsp;&nbsp; 腾讯云服务器秒杀区
           <el-link
             href="http://txy.ruoyi.vip"
             type="primary"
-            target="_blank"
-            >>☛☛点我进入☚☚</el-link
-          ><br />
+            target="_blank">>☛☛点我进入☚☚</el-link><br />
           <h4 class="text-danger">云产品通用红包，可叠加官网常规优惠使用。(仅限新用户)</h4>
         </blockquote>
 
@@ -51,8 +55,7 @@
       <el-col
         :sm="24"
         :lg="12"
-        style="padding-left: 20px"
-      >
+        style="padding-left: 20px">
         <h2>若依后台管理框架</h2>
         <p>
           一直想做一款后台管理系统，看了很多优秀的开源项目但是发现没有合适自己的。于是利用空闲休息时间开始自己写一套后台系统。如此有了若依管理系统，她可以用于所有的Web应用程序，如网站管理后台，网站会员中心，CMS，CRM，OA等等，当然，您也可以对她进行深度定制，以做出更强系统。所有前端后台代码封装过后十分精简易上手，出错概率低。同时支持移动客户端访问。系统会陆续更新一些实用功能。
@@ -69,24 +72,19 @@
             size="mini"
             icon="el-icon-cloudy"
             plain
-            @click="goTarget('https://gitee.com/y_project/RuoYi-Vue')"
-            >访问码云</el-button
-          >
+            @click="goTarget('https://gitee.com/y_project/RuoYi-Vue')">访问码云</el-button>
           <el-button
             size="mini"
             icon="el-icon-s-home"
             plain
-            @click="goTarget('http://ruoyi.vip')"
-            >访问主页</el-button
-          >
+            @click="goTarget('http://ruoyi.vip')">访问主页</el-button>
         </p>
       </el-col>
 
       <el-col
         :sm="24"
         :lg="12"
-        style="padding-left: 50px"
-      >
+        style="padding-left: 50px">
         <el-row>
           <el-col :span="12">
             <h2>技术选型</h2>
@@ -126,22 +124,14 @@
         :xs="24"
         :sm="24"
         :md="12"
-        :lg="8"
-      >
+        :lg="8">
         <el-card class="update-log">
-          <div
-            slot="header"
-            class="clearfix"
-          >
+          <div class="clearfix" slot="header">
             <span>联系信息</span>
           </div>
           <div class="body">
             <p>
-              <i class="el-icon-s-promotion"></i> 官网：<el-link
-                href="http://www.ruoyi.vip"
-                target="_blank"
-                >http://www.ruoyi.vip</el-link
-              >
+              <i class="el-icon-s-promotion"></i> 官网：<el-link href="http://www.ruoyi.vip" target="_blank">http://www.ruoyi.vip</el-link>
             </p>
             <p>
               <i class="el-icon-user-solid"></i> QQ群：<s> 满937441 </s> <s> 满887144332 </s>
@@ -149,19 +139,11 @@
               <s> 满101456076 </s> <s> 满101539465 </s> <s> 满264312783 </s> <s> 满167385320 </s>
               <s> 满104748341 </s> <s> 满160110482 </s> <s> 满170801498 </s> <s> 满108482800 </s>
               <s> 满101046199 </s> <s> 满136919097 </s> <s> 满143961921 </s> <s> 满174951577 </s>
-              <a
-                href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=Lj0nHRAPD5CZv1jTOciuxXVloBJLS2Lp&authKey=Q2RxC6%2Ffxney9yOGBY0sDJxFhX9b7o1FRY1bsESmkbcZ4PFt6Vx92FpVo9O1u9p4&noverify=0&group_code=161281055"
-                target="_blank"
-                >161281055</a
-              >
+              <a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=Lj0nHRAPD5CZv1jTOciuxXVloBJLS2Lp&authKey=Q2RxC6%2Ffxney9yOGBY0sDJxFhX9b7o1FRY1bsESmkbcZ4PFt6Vx92FpVo9O1u9p4&noverify=0&group_code=161281055" target="_blank">161281055</a>
             </p>
             <p><i class="el-icon-chat-dot-round"></i> 微信：<a href="javascript:;">/ *若依</a></p>
             <p>
-              <i class="el-icon-money"></i> 支付宝：<a
-                href="javascript:;"
-                class="支付宝信息"
-                >/ *若依</a
-              >
+              <i class="el-icon-money"></i> 支付宝：<a class="支付宝信息" href="javascript:;">/ *若依</a>
             </p>
           </div>
         </el-card>
@@ -170,13 +152,9 @@
         :xs="24"
         :sm="24"
         :md="12"
-        :lg="8"
-      >
+        :lg="8">
         <el-card class="update-log">
-          <div
-            slot="header"
-            class="clearfix"
-          >
+          <div class="clearfix" slot="header">
             <span>更新日志</span>
           </div>
           <el-collapse accordion>
@@ -1016,82 +994,48 @@
 </template>
 
 <script>
-export default {
+/**
+ * 组件名称：Index
+ * 功能说明：框架介绍首页，展示版本信息与更新日志
+ * 研发时间：2024/01/22
+ * 研发人员：insistence
+ *
+ * 变量说明：
+ * @data {String} version - 当前版本号
+ *
+ * 事件说明：
+ * @event goTarget - 新窗口打开目标地址
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2024/01/22     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
+export default
+{
   name: 'Index',
-  data() {
+
+  data()
+  {
     return {
       // 版本号
       version: '3.8.7',
     }
   },
-  methods: {
-    goTarget(href) {
+
+  methods:
+  {
+    /**
+     * 新窗口打开目标地址
+     * @param {String} href - 目标地址
+     */
+    goTarget(href)
+    {
       window.open(href, '_blank')
     },
   },
 }
 </script>
-
-<style scoped lang="scss">
-.home {
-  blockquote {
-    padding: 10px 20px;
-    margin: 0 0 20px;
-    font-size: 17.5px;
-    border-left: 5px solid #eee;
-  }
-  hr {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    border: 0;
-    border-top: 1px solid #eee;
-  }
-  .col-item {
-    margin-bottom: 20px;
-  }
-
-  ul {
-    padding: 0;
-    margin: 0;
-  }
-
-  font-family: 'open sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 13px;
-  color: #676a6c;
-  overflow-x: hidden;
-
-  ul {
-    list-style-type: none;
-  }
-
-  h4 {
-    margin-top: 0px;
-  }
-
-  h2 {
-    margin-top: 10px;
-    font-size: 26px;
-    font-weight: 100;
-  }
-
-  p {
-    margin-top: 10px;
-
-    b {
-      font-weight: 700;
-    }
-  }
-
-  .update-log {
-    ol {
-      display: block;
-      list-style-type: decimal;
-      margin-block-start: 1em;
-      margin-block-end: 1em;
-      margin-inline-start: 0;
-      margin-inline-end: 0;
-      padding-inline-start: 40px;
-    }
-  }
-}
-</style>

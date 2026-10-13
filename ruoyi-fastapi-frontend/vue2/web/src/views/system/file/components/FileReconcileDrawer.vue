@@ -1,3 +1,27 @@
+<style lang="scss" scoped>
+.drawer-content { padding: 0 20px 20px; }
+.reconcile-summary { display: grid; grid-template-columns: repeat(5, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.summary-card { position: relative; overflow: hidden; min-height: 112px; padding: 16px 18px; border: 1px solid #ebeef5; background: #fff; border-radius: 8px; }
+.summary-card::before { position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--card-color); content: ''; }
+.summary-card--danger { --card-color: #f56c6c; }
+.summary-card--critical { --card-color: #b42318; }
+.summary-card--warning { --card-color: #e6a23c; }
+.summary-card--quarantine { --card-color: #7f56d9; }
+.summary-card--run { --card-color: #409eff; }
+.summary-card__label { font-size: 14px; color: #909399; }
+.summary-card__value { margin-top: 7px; font-size: 28px; font-weight: 600; line-height: 34px; color: #303133; }
+.summary-card__status { display: flex; align-items: center; height: 41px; }
+.summary-card__hint { overflow: hidden; font-size: 12px; color: #c0c4cc; text-overflow: ellipsis; white-space: nowrap; }
+.reconcile-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 10px 14px; background: #f5f7fa; border-radius: 6px; }
+.reconcile-toolbar__tip { font-size: 13px; color: #909399; }
+.reconcile-toolbar__actions { display: flex; align-items: center; white-space: nowrap; }
+.reconcile-action-trigger { display: inline-flex; align-items: center; }
+.cell-secondary { overflow: hidden; margin-top: 3px; font-size: 12px; color: #909399; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 1400px) {
+  .reconcile-summary { grid-template-columns: repeat(3, minmax(160px, 1fr)); }
+}
+</style>
+
 <template>
   <div>
     <el-drawer
@@ -5,17 +29,14 @@
       :visible.sync="visible"
       size="88%"
       append-to-body
-      @closed="handleClosed"
-    >
+      @closed="handleClosed">
       <div class="drawer-content">
         <el-alert
+          class="mb12"
           title="对账会双向检查文件信息表与公开、受保护、回收站存储区；隔离区不对外提供静态访问。修复操作仅使用异常中已校验的相对路径。"
           type="info"
           :closable="false"
-          show-icon
-          class="mb12"
-        />
-
+          show-icon/>
         <div class="reconcile-summary">
           <div class="summary-card summary-card--danger">
             <div class="summary-card__label">待处理</div>
@@ -49,17 +70,13 @@
             </div>
           </div>
         </div>
-
         <div class="reconcile-toolbar">
           <div class="reconcile-toolbar__tip">
             完整摘要校验会读取全部文件内容，建议在低峰期启用。
           </div>
           <div class="reconcile-toolbar__actions">
             <span class="mr8">校验 SHA-256</span>
-            <el-switch
-              v-model="checkHash"
-              class="mr12"
-            />
+            <el-switch class="mr12" v-model="checkHash"/>
             <el-button
               type="primary"
               plain
@@ -67,110 +84,62 @@
               icon="el-icon-refresh"
               :loading="scanning"
               :disabled="latestRun.status === 'running'"
-              @click="handleStart"
-              >开始对账</el-button
-            >
+              @click="handleStart">开始对账</el-button>
           </div>
         </div>
-
-        <el-tabs
-          v-model="activeTab"
-          @tab-click="handleTabClick"
-        >
-          <el-tab-pane
-            label="异常明细"
-            name="issues"
-          >
+        <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+          <el-tab-pane label="异常明细" name="issues">
             <el-form
               ref="issueQueryForm"
               :model="issueQuery"
               :inline="true"
-              label-width="68px"
-            >
-              <el-form-item
-                label="关键字"
-                prop="keyword"
-              >
+              label-width="68px">
+              <el-form-item label="关键字" prop="keyword">
                 <el-input
                   v-model="issueQuery.keyword"
                   placeholder="文件名、ID或相对路径"
                   clearable
                   size="small"
                   style="width: 200px"
-                  @keyup.enter.native="handleIssueQuery"
-                />
+                  @keyup.enter.native="handleIssueQuery"/>
               </el-form-item>
-              <el-form-item
-                label="异常类型"
-                prop="issueType"
-              >
+              <el-form-item label="异常类型" prop="issueType">
                 <el-select
                   v-model="issueQuery.issueType"
                   placeholder="全部类型"
                   clearable
                   size="small"
-                  style="width: 200px"
-                >
+                  style="width: 200px">
                   <el-option
                     v-for="item in issueTypeOptions"
                     :key="item.value"
                     :label="item.label"
-                    :value="item.value"
-                  />
+                    :value="item.value"/>
                 </el-select>
               </el-form-item>
-              <el-form-item
-                label="严重级别"
-                prop="severity"
-              >
+              <el-form-item label="严重级别" prop="severity">
                 <el-select
                   v-model="issueQuery.severity"
                   placeholder="全部级别"
                   clearable
                   size="small"
-                  style="width: 200px"
-                >
-                  <el-option
-                    label="严重"
-                    value="critical"
-                  />
-                  <el-option
-                    label="警告"
-                    value="warning"
-                  />
-                  <el-option
-                    label="提示"
-                    value="info"
-                  />
+                  style="width: 200px">
+                  <el-option label="严重" value="critical"/>
+                  <el-option label="警告" value="warning"/>
+                  <el-option label="提示" value="info"/>
                 </el-select>
               </el-form-item>
-              <el-form-item
-                label="处理状态"
-                prop="status"
-              >
+              <el-form-item label="处理状态" prop="status">
                 <el-select
                   v-model="issueQuery.status"
                   placeholder="全部状态"
                   clearable
                   size="small"
-                  style="width: 200px"
-                >
-                  <el-option
-                    label="待处理"
-                    value="open"
-                  />
-                  <el-option
-                    label="已忽略"
-                    value="ignored"
-                  />
-                  <el-option
-                    label="已隔离"
-                    value="quarantined"
-                  />
-                  <el-option
-                    label="已解决"
-                    value="resolved"
-                  />
+                  style="width: 200px">
+                  <el-option label="待处理" value="open"/>
+                  <el-option label="已忽略" value="ignored"/>
+                  <el-option label="已隔离" value="quarantined"/>
+                  <el-option label="已解决" value="resolved"/>
                 </el-select>
               </el-form-item>
               <el-form-item label-width="0">
@@ -178,27 +147,18 @@
                   type="primary"
                   size="mini"
                   icon="el-icon-search"
-                  @click="handleIssueQuery"
-                  >搜索</el-button
-                >
+                  @click="handleIssueQuery">搜索</el-button>
                 <el-button
                   size="mini"
                   icon="el-icon-refresh"
-                  @click="resetIssueQuery"
-                  >重置</el-button
-                >
+                  @click="resetIssueQuery">重置</el-button>
               </el-form-item>
             </el-form>
-
-            <el-table
-              v-loading="issueLoading"
-              :data="issueList"
-            >
+            <el-table v-loading="issueLoading" :data="issueList">
               <el-table-column
                 label="级别"
                 align="center"
-                width="80"
-              >
+                width="80">
                 <template slot-scope="scope">
                   <el-tag :type="severityTagType(scope.row.severity)">
                     {{ severityLabel(scope.row.severity) }}
@@ -208,8 +168,7 @@
               <el-table-column
                 label="异常类型"
                 align="center"
-                width="130"
-              >
+                width="130">
                 <template slot-scope="scope">
                   {{ issueTypeLabel(scope.row.issueType) }}
                 </template>
@@ -219,8 +178,7 @@
                 align="left"
                 prop="originalName"
                 min-width="170"
-                show-overflow-tooltip
-              >
+                show-overflow-tooltip>
                 <template slot-scope="scope">
                   <div>{{ scope.row.originalName || '未登记文件' }}</div>
                   <div class="cell-secondary">
@@ -231,16 +189,12 @@
               <el-table-column
                 label="存储位置"
                 align="left"
-                min-width="230"
-              >
+                min-width="230">
                 <template slot-scope="scope">
                   <div :title="formatLocation(scope.row.expectedRoot, scope.row.expectedKey)">
                     预期：{{ formatLocation(scope.row.expectedRoot, scope.row.expectedKey) }}
                   </div>
-                  <div
-                    class="cell-secondary"
-                    :title="formatLocation(scope.row.actualRoot, scope.row.actualKey)"
-                  >
+                  <div class="cell-secondary" :title="formatLocation(scope.row.actualRoot, scope.row.actualKey)">
                     实际：{{ formatLocation(scope.row.actualRoot, scope.row.actualKey) }}
                   </div>
                 </template>
@@ -248,8 +202,7 @@
               <el-table-column
                 label="大小"
                 align="right"
-                width="130"
-              >
+                width="130">
                 <template slot-scope="scope">
                   <div>预期：{{ formatOptionalSize(scope.row.expectedSize) }}</div>
                   <div class="cell-secondary">
@@ -260,8 +213,7 @@
               <el-table-column
                 label="状态"
                 align="center"
-                width="90"
-              >
+                width="90">
                 <template slot-scope="scope">
                   <el-tag :type="issueStatusType(scope.row.status)">
                     {{ issueStatusLabel(scope.row.status) }}
@@ -273,13 +225,11 @@
                 align="left"
                 prop="detail"
                 min-width="180"
-                show-overflow-tooltip
-              />
+                show-overflow-tooltip/>
               <el-table-column
                 label="最近发现"
                 align="center"
-                width="170"
-              >
+                width="170">
                 <template slot-scope="scope">
                   {{ parseTime(scope.row.lastSeenTime) }}
                 </template>
@@ -288,34 +238,29 @@
                 label="操作"
                 align="center"
                 width="70"
-                fixed="right"
-              >
+                fixed="right">
                 <template slot-scope="scope">
                   <el-tooltip
                     v-if="scope.row.availableActions && scope.row.availableActions.length"
                     :content="
                       latestRun.status === 'running' ? '对账任务运行中，请等待扫描完成' : '处理异常'
                     "
-                    placement="top"
-                  >
+                    placement="top">
                     <span class="reconcile-action-trigger">
                       <el-dropdown
                         trigger="click"
                         :disabled="latestRun.status === 'running'"
-                        @command="handleCommand($event, scope.row)"
-                      >
+                        @command="handleCommand($event, scope.row)">
                         <el-button
+                          class="table-operation-button"
                           type="text"
                           icon="el-icon-setting"
-                          class="table-operation-button"
-                          :disabled="latestRun.status === 'running'"
-                        />
+                          :disabled="latestRun.status === 'running'"/>
                         <el-dropdown-menu slot="dropdown">
                           <el-dropdown-item
                             v-for="action in scope.row.availableActions"
                             :key="action"
-                            :command="action"
-                          >
+                            :command="action">
                             {{ actionLabel(action) }}
                           </el-dropdown-item>
                         </el-dropdown-menu>
@@ -331,23 +276,14 @@
               :total="issueTotal"
               :page.sync="issueQuery.pageNum"
               :limit.sync="issueQuery.pageSize"
-              @pagination="getIssueList"
-            />
+              @pagination="getIssueList"/>
           </el-tab-pane>
-
-          <el-tab-pane
-            label="任务记录"
-            name="runs"
-          >
-            <el-table
-              v-loading="runLoading"
-              :data="runList"
-            >
+          <el-tab-pane label="任务记录" name="runs">
+            <el-table v-loading="runLoading" :data="runList">
               <el-table-column
                 label="任务状态"
                 align="center"
-                width="100"
-              >
+                width="100">
                 <template slot-scope="scope">
                   <el-tag :type="runStatusType(scope.row.status)">
                     {{ runStatusLabel(scope.row.status) }}
@@ -357,8 +293,7 @@
               <el-table-column
                 label="触发方式"
                 align="center"
-                width="100"
-              >
+                width="100">
                 <template slot-scope="scope">
                   {{ scope.row.triggerType === 'scheduled' ? '定时任务' : '手动' }}
                 </template>
@@ -366,59 +301,50 @@
               <el-table-column
                 label="摘要校验"
                 align="center"
-                width="90"
-              >
+                width="90">
                 <template slot-scope="scope">{{ scope.row.checkHash ? '是' : '否' }}</template>
               </el-table-column>
               <el-table-column
                 label="文件记录"
                 align="right"
                 prop="scannedFileCount"
-                width="100"
-              />
+                width="100"/>
               <el-table-column
                 label="物理文件"
                 align="right"
                 prop="scannedStorageCount"
-                width="100"
-              />
+                width="100"/>
               <el-table-column
                 label="发现异常"
                 align="right"
                 prop="issueCount"
-                width="100"
-              />
+                width="100"/>
               <el-table-column
                 label="新增异常"
                 align="right"
                 prop="newIssueCount"
-                width="100"
-              />
+                width="100"/>
               <el-table-column
                 label="自动恢复"
                 align="right"
                 prop="resolvedIssueCount"
-                width="100"
-              />
+                width="100"/>
               <el-table-column
                 label="发起人"
                 align="center"
                 prop="startedBy"
                 width="110"
-                show-overflow-tooltip
-              />
+                show-overflow-tooltip/>
               <el-table-column
                 label="开始时间"
                 align="center"
-                width="170"
-              >
+                width="170">
                 <template slot-scope="scope">{{ parseTime(scope.row.startedTime) }}</template>
               </el-table-column>
               <el-table-column
                 label="完成时间"
                 align="center"
-                width="170"
-              >
+                width="170">
                 <template slot-scope="scope">
                   {{ scope.row.finishedTime ? parseTime(scope.row.finishedTime) : '-' }}
                 </template>
@@ -428,16 +354,14 @@
                 align="left"
                 prop="errorMessage"
                 min-width="180"
-                show-overflow-tooltip
-              />
+                show-overflow-tooltip/>
             </el-table>
             <pagination
               v-show="runTotal > 0"
               :total="runTotal"
               :page.sync="runQuery.pageNum"
               :limit.sync="runQuery.pageSize"
-              @pagination="getRunList"
-            />
+              @pagination="getRunList"/>
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -447,65 +371,115 @@
       :title="actionLabel(handleForm.action)"
       :visible.sync="handleOpen"
       width="520px"
-      append-to-body
-    >
+      append-to-body>
       <el-alert
+        class="mb16"
         v-if="actionDescriptions[handleForm.action]"
         :title="actionDescriptions[handleForm.action]"
         :type="dangerousActions.indexOf(handleForm.action) >= 0 ? 'warning' : 'info'"
         :closable="false"
-        show-icon
-        class="mb16"
-      />
+        show-icon/>
       <el-form
         ref="handleForm"
         :model="handleForm"
         :rules="handleRules"
-        label-width="90px"
-      >
+        label-width="90px">
         <el-form-item
           v-if="handleForm.action === 'register_orphan'"
           label="原始文件名"
-          prop="originalName"
-        >
+          prop="originalName">
           <el-input
             v-model="handleForm.originalName"
             placeholder="需与物理文件扩展名一致"
-            maxlength="255"
-          />
+            maxlength="255"/>
         </el-form-item>
-        <el-form-item
-          label="处理原因"
-          prop="reason"
-        >
+        <el-form-item label="处理原因" prop="reason">
           <el-input
             v-model="handleForm.reason"
             type="textarea"
             :rows="4"
             maxlength="500"
             show-word-limit
-            placeholder="请填写处理依据，内容会保留在对账记录中"
-          />
+            placeholder="请填写处理依据，内容会保留在对账记录中"/>
         </el-form-item>
       </el-form>
-      <div
-        slot="footer"
-        class="dialog-footer"
-      >
+      <div class="dialog-footer" slot="footer">
         <el-button @click="handleOpen = false">取 消</el-button>
         <el-button
           type="primary"
           :loading="handling"
-          @click="submitHandle"
-        >
-          确 定
-        </el-button>
+          @click="submitHandle">确 定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
+/**
+ * 组件名称：FileReconcileDrawer
+ * 功能说明：文件存储对账抽屉，展示对账统计、异常明细与任务记录，并支持对异常执行处理操作
+ * 研发时间：2026/07/26
+ * 研发人员：insistence
+ *
+ * 参数说明：
+ *
+ * 变量说明：
+ * @data {Boolean} visible            - 抽屉是否可见
+ * @data {String}  activeTab          - 当前激活的页签
+ * @data {Boolean} issueLoading       - 异常明细加载状态
+ * @data {Boolean} runLoading         - 任务记录加载状态
+ * @data {Boolean} scanning           - 对账任务启动中状态
+ * @data {Boolean} handling           - 异常处理提交中状态
+ * @data {Boolean} checkHash          - 是否校验 SHA-256
+ * @data {Array}   issueList          - 异常明细列表
+ * @data {Array}   runList            - 任务记录列表
+ * @data {Number}  issueTotal         - 异常明细总条数
+ * @data {Number}  runTotal           - 任务记录总条数
+ * @data {Object}  pollTimer          - 轮询定时器
+ * @data {Number}  currentIssueId     - 当前处理的异常标识
+ * @data {Boolean} handleOpen         - 异常处理弹窗是否可见
+ * @data {Object}  stats              - 对账统计数据
+ * @data {Object}  issueQuery         - 异常明细查询条件
+ * @data {Object}  runQuery           - 任务记录查询条件
+ * @data {Object}  handleForm         - 异常处理表单数据
+ * @data {Object}  handleRules        - 异常处理表单校验规则
+ * @data {Array}   issueTypeOptions   - 异常类型选项
+ * @data {Array}   dangerousActions   - 危险操作集合
+ * @data {Object}  actionDescriptions - 异常操作说明映射
+ *
+ * 事件说明：
+ * @event open               - 打开抽屉并加载数据
+ * @event refreshAll         - 刷新统计数据、异常明细与任务记录
+ * @event getStats           - 获取对账统计数据
+ * @event getIssueList       - 获取异常明细列表
+ * @event getRunList         - 获取任务记录列表
+ * @event handleStart        - 启动对账任务
+ * @event handleIssueQuery   - 异常明细查询
+ * @event resetIssueQuery    - 重置异常明细查询条件
+ * @event handleTabClick     - 页签切换回调
+ * @event handleCommand      - 异常处理命令回调
+ * @event submitHandle       - 提交异常处理
+ * @event startPolling       - 启动对账状态轮询
+ * @event handleClosed       - 抽屉关闭回调
+ * @event formatLocation     - 格式化存储位置
+ * @event formatOptionalSize - 格式化可选文件大小
+ * @event issueTypeLabel     - 异常类型文本转换
+ * @event severityLabel      - 严重级别文本转换
+ * @event severityTagType    - 严重级别标签类型转换
+ * @event issueStatusLabel   - 异常状态文本转换
+ * @event issueStatusType    - 异常状态标签类型转换
+ * @event runStatusLabel     - 任务状态文本转换
+ * @event runStatusType      - 任务状态标签类型转换
+ * @event actionLabel        - 操作类型文本转换
+ *
+ * 插槽说明：
+ */
+
+/**
+ * 2026/07/26     insistence    初始创建
+ * 2026/10/13     Trae          按编码规范调整格式与注释
+ */
+
 import {
   getFileReconcileStats,
   handleFileReconcileIssue,
@@ -515,9 +489,12 @@ import {
 } from '@/api/system/file'
 import { formatFileSize } from './fileFormatters'
 
-export default {
+export default
+{
   name: 'FileReconcileDrawer',
-  data() {
+
+  data()
+  {
     const validateOriginalName = (_rule, value, callback) => {
       if (this.handleForm.action === 'register_orphan' && !value) {
         callback(new Error('登记孤立文件时必须填写原始文件名'))
@@ -596,32 +573,67 @@ export default {
       },
     }
   },
-  computed: {
-    latestRun() {
+
+  computed:
+  {
+    /**
+     * 获取最近一次对账任务信息，缺省返回空对象
+     * @returns {Object} 最近一次对账任务
+     */
+    latestRun()
+    {
       return this.stats.latestRun || {}
-    },
+    }
   },
-  beforeDestroy() {
+
+  /**
+   * 组件销毁前清除轮询定时器
+   */
+  beforeDestroy()
+  {
     clearInterval(this.pollTimer)
   },
-  methods: {
-    open() {
+
+  methods:
+  {
+    /**
+     * 打开抽屉并加载数据
+     */
+    open()
+    {
       this.visible = true
       this.activeTab = 'issues'
       this.refreshAll()
       this.startPolling()
     },
-    refreshAll() {
+
+    /**
+     * 刷新统计数据、异常明细与任务记录
+     */
+    refreshAll()
+    {
       this.getStats()
       this.getIssueList()
       this.getRunList()
     },
-    getStats() {
+
+    /**
+     * 获取对账统计数据
+     * @returns {Promise} 统计数据请求 Promise
+     */
+    getStats()
+    {
       return getFileReconcileStats().then((response) => {
         Object.assign(this.stats, response.data)
       })
     },
-    getIssueList() {
+
+    /**
+     * 获取异常明细列表
+     * @returns {Promise} 异常明细请求 Promise
+     */
+    getIssueList()
+    {
       this.issueLoading = true
       return listFileReconcileIssue(this.issueQuery)
         .then((response) => {
@@ -632,7 +644,13 @@ export default {
           this.issueLoading = false
         })
     },
-    getRunList() {
+
+    /**
+     * 获取任务记录列表
+     * @returns {Promise} 任务记录请求 Promise
+     */
+    getRunList()
+    {
       this.runLoading = true
       return listFileReconcileRun(this.runQuery)
         .then((response) => {
@@ -643,7 +661,12 @@ export default {
           this.runLoading = false
         })
     },
-    handleStart() {
+
+    /**
+     * 启动对账任务
+     */
+    handleStart()
+    {
       this.scanning = true
       startFileReconcile({ checkHash: this.checkHash })
         .then(() => {
@@ -654,20 +677,43 @@ export default {
           this.scanning = false
         })
     },
-    handleIssueQuery() {
+
+    /**
+     * 异常明细查询
+     */
+    handleIssueQuery()
+    {
       this.issueQuery.pageNum = 1
       this.getIssueList()
     },
-    resetIssueQuery() {
+
+    /**
+     * 重置异常明细查询条件
+     */
+    resetIssueQuery()
+    {
       this.$refs.issueQueryForm.resetFields()
       this.issueQuery.pageNum = 1
       this.issueQuery.status = 'open'
       this.getIssueList()
     },
-    handleTabClick(tab) {
+
+    /**
+     * 页签切换回调
+     * @param {Object} tab - 被点击的页签对象
+     */
+    handleTabClick(tab)
+    {
       if (tab.name === 'runs') this.getRunList()
     },
-    handleCommand(action, row) {
+
+    /**
+     * 异常处理命令回调
+     * @param {String} action - 处理动作
+     * @param {Object} row - 当前异常行数据
+     */
+    handleCommand(action, row)
+    {
       this.currentIssueId = row.issueId
       Object.assign(this.handleForm, {
         action,
@@ -677,7 +723,12 @@ export default {
       this.handleOpen = true
       this.$nextTick(() => this.$refs.handleForm.clearValidate())
     },
-    submitHandle() {
+
+    /**
+     * 提交异常处理
+     */
+    submitHandle()
+    {
       this.$refs.handleForm.validate((valid) => {
         if (!valid) return
         this.handling = true
@@ -698,35 +749,88 @@ export default {
           })
       })
     },
-    startPolling() {
+
+    /**
+     * 启动对账状态轮询
+     */
+    startPolling()
+    {
       clearInterval(this.pollTimer)
       this.pollTimer = setInterval(() => {
         if (!this.visible || this.latestRun.status !== 'running') return
         this.refreshAll()
       }, 3000)
     },
-    handleClosed() {
+
+    /**
+     * 抽屉关闭回调
+     */
+    handleClosed()
+    {
       clearInterval(this.pollTimer)
       this.pollTimer = null
       this.handleOpen = false
     },
-    formatLocation(root, key) {
+
+    /**
+     * 格式化存储位置
+     * @param {String} root - 存储区域
+     * @param {String} key - 存储路径
+     * @returns {String} 格式化后的存储位置
+     */
+    formatLocation(root, key)
+    {
       return root && key ? `${root}:${key}` : '-'
     },
-    formatOptionalSize(size) {
+
+    /**
+     * 格式化可选文件大小
+     * @param {Number} size - 文件字节数
+     * @returns {String} 格式化后的文件大小
+     */
+    formatOptionalSize(size)
+    {
       return size === null || size === undefined ? '-' : formatFileSize(size)
     },
-    issueTypeLabel(type) {
+
+    /**
+     * 异常类型文本转换
+     * @param {String} type - 异常类型
+     * @returns {String} 异常类型文本
+     */
+    issueTypeLabel(type)
+    {
       const option = this.issueTypeOptions.find((item) => item.value === type)
       return option ? option.label : type
     },
-    severityLabel(severity) {
+
+    /**
+     * 严重级别文本转换
+     * @param {String} severity - 严重级别
+     * @returns {String} 严重级别文本
+     */
+    severityLabel(severity)
+    {
       return { critical: '严重', warning: '警告', info: '提示' }[severity] || severity
     },
-    severityTagType(severity) {
+
+    /**
+     * 严重级别标签类型转换
+     * @param {String} severity - 严重级别
+     * @returns {String} 标签类型
+     */
+    severityTagType(severity)
+    {
       return { critical: 'danger', warning: 'warning', info: 'info' }[severity] || 'info'
     },
-    issueStatusLabel(status) {
+
+    /**
+     * 异常状态文本转换
+     * @param {String} status - 异常状态
+     * @returns {String} 异常状态文本
+     */
+    issueStatusLabel(status)
+    {
       return (
         {
           open: '待处理',
@@ -736,7 +840,14 @@ export default {
         }[status] || status
       )
     },
-    issueStatusType(status) {
+
+    /**
+     * 异常状态标签类型转换
+     * @param {String} status - 异常状态
+     * @returns {String} 标签类型
+     */
+    issueStatusType(status)
+    {
       return (
         {
           open: 'danger',
@@ -746,7 +857,14 @@ export default {
         }[status] || 'info'
       )
     },
-    runStatusLabel(status) {
+
+    /**
+     * 任务状态文本转换
+     * @param {String} status - 任务状态
+     * @returns {String} 任务状态文本
+     */
+    runStatusLabel(status)
+    {
       return (
         {
           running: '运行中',
@@ -755,7 +873,14 @@ export default {
         }[status] || '尚未执行'
       )
     },
-    runStatusType(status) {
+
+    /**
+     * 任务状态标签类型转换
+     * @param {String} status - 任务状态
+     * @returns {String} 标签类型
+     */
+    runStatusType(status)
+    {
       return (
         {
           running: 'warning',
@@ -764,7 +889,14 @@ export default {
         }[status] || 'info'
       )
     },
-    actionLabel(action) {
+
+    /**
+     * 操作类型文本转换
+     * @param {String} action - 操作类型
+     * @returns {String} 操作类型文本
+     */
+    actionLabel(action)
+    {
       return (
         {
           ignore: '忽略异常',
@@ -783,120 +915,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-.drawer-content {
-  padding: 0 20px 20px;
-}
-
-.reconcile-summary {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(160px, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.summary-card {
-  position: relative;
-  overflow: hidden;
-  min-height: 112px;
-  padding: 16px 18px;
-  border: 1px solid #ebeef5;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.summary-card::before {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  content: '';
-  background: var(--card-color);
-}
-
-.summary-card--danger {
-  --card-color: #f56c6c;
-}
-.summary-card--critical {
-  --card-color: #b42318;
-}
-.summary-card--warning {
-  --card-color: #e6a23c;
-}
-.summary-card--quarantine {
-  --card-color: #7f56d9;
-}
-.summary-card--run {
-  --card-color: #409eff;
-}
-
-.summary-card__label {
-  color: #909399;
-  font-size: 14px;
-}
-
-.summary-card__value {
-  margin-top: 7px;
-  color: #303133;
-  font-size: 28px;
-  font-weight: 600;
-  line-height: 34px;
-}
-
-.summary-card__status {
-  display: flex;
-  align-items: center;
-  height: 41px;
-}
-
-.summary-card__hint {
-  overflow: hidden;
-  color: #c0c4cc;
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.reconcile-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  padding: 10px 14px;
-  border-radius: 6px;
-  background: #f5f7fa;
-}
-
-.reconcile-toolbar__tip {
-  color: #909399;
-  font-size: 13px;
-}
-
-.reconcile-toolbar__actions {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-}
-
-.reconcile-action-trigger {
-  display: inline-flex;
-  align-items: center;
-}
-
-.cell-secondary {
-  overflow: hidden;
-  margin-top: 3px;
-  color: #909399;
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (max-width: 1400px) {
-  .reconcile-summary {
-    grid-template-columns: repeat(3, minmax(160px, 1fr));
-  }
-}
-</style>

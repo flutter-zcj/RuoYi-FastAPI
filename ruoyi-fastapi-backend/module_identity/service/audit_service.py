@@ -9,7 +9,7 @@ from exceptions.exception import OidcInteractionException
 from module_identity.dao.oauth_audit_dao import OAuthAuditDao
 from module_identity.entity.do.oauth_audit_do import SysOAuthAuditLog
 from module_identity.entity.vo.oauth_session_vo import AuditModel, AuditPageQueryModel
-from utils.excel_util import ExcelUtil
+from utils.common_util import export_list2excel
 from utils.oidc_util import OidcUtil
 
 
@@ -270,9 +270,8 @@ class AuditService:
         """
 
         rows = await OAuthAuditDao.list_admin_page(db, offset=0, limit=5000, **cls._admin_filters(query))
-        mapping = {field.alias or name: field.alias or name for name, field in AuditModel.model_fields.items()}
 
-        return ExcelUtil.export_list2excel([cls._admin_model(row) for row in rows], mapping)
+        return export_list2excel([cls._admin_model(row) for row in rows])
 
     @classmethod
     async def record_interaction_failure(cls, db: AsyncSession, event_type: str, **fields: Any) -> None:
